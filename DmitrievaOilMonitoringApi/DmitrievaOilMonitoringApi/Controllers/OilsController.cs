@@ -53,5 +53,19 @@ namespace DmitrievaOilMonitoringApi.Controllers
             await _service.Delete(id);
             return NoContent();
         }
+        //=========== LINQ ============//
+
+        [HttpGet("critical-wear")]
+        public async Task<ActionResult<IEnumerable<CriticalWearDTO>>> GetCriticalWearOils()
+        {
+            var oils = await _service.GetCriticalWearOils();
+            return Ok(oils);
+        }
+        [HttpGet("oil-statistics")]
+        public async Task<ActionResult<StatisticsDTO>> GetStatistics()
+        {
+            var statistics = await _service.GetStatistics();
+            return Ok(statistics);
+        }
     }
 }

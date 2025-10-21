@@ -3,6 +3,7 @@ using DmitrievaOilMonitoringApi.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace DmitrievaOilMonitoringApi.Data.Services
 {
@@ -96,6 +97,49 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 await _context.SaveChangesAsync();
             }
             return oilDTO;
+        }
+
+        //============ LINQ ================\\
+        public async Task<IEnumerable<CriticalWearDTO>> GetCriticalWearOils()
+        {
+            return await _context.Oils.Where(s => s.Status == "Критическое").Select(o => new CriticalWearDTO
+            {
+                Id = o.Id,
+                Wear = o.Wear,
+                Status = o.Status,
+                OperatingHours = o.OperatingHours
+            }).ToListAsync();
+        }
+
+        public async Task<StatisticsDTO> GetStatistics()
+        {
+            var totalOils = await _context.Oils.CountAsync();
+
+            if (totalOils == 0)
+            {
+                return new StatisticsDTO
+                {
+                    TotalOils = 0,
+                    NormalOils = 0,
+                    WarningOils = 0,
+                    AverageWear = 0,
+                    AverageContamination = 0
+                };
+            }
+            var normalOils = await _context.Oils.CountAsync(o => o.Status == "Нормальное");
+            var warningOils = await _context.Oils.CountAsync(o => o.Status != "Нормальное");
+            var averageWear = await _context.Oils.AverageAsync(o => o.Wear);
+            var averageContamination = await _context.Oils.AverageAsync(o => o.Contamination);
+
+            return new StatisticsDTO
+            {
+                TotalOils = totalOils,
+                NormalOils = normalOils,
+                WarningOils = warningOils,
+                AverageWear = averageWear,
+                AverageContamination = averageContamination
+            };
+
         }
     }
 }

@@ -44,14 +44,6 @@
                 return "Нормальное";
         }
 
-        public bool IsOilGood(double currentTemperature)
-        {
-            return GetWear(currentTemperature) < 10 &&
-                GetContamination(currentTemperature) < 3 &&
-                WaterContent > 1 &&
-                TAN < 2.0;
-        }
-
         public void UpdateOperatingHours( double additionalHours)
         {
             OperatingHours += additionalHours;

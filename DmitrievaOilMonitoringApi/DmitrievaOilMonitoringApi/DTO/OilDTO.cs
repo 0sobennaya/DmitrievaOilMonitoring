@@ -36,4 +36,19 @@ namespace DmitrievaOilMonitoringApi.DTO
         public double Contamination { get; set; }
         public string Status { get; set; }
     }
+    public class CriticalWearDTO
+    {
+        public int Id { get; set; }
+        public double Wear { get; set; }
+        public string Status { get; set; }
+        public double OperatingHours { get; set; }
+    }
+    public class StatisticsDTO
+    {
+        public int TotalOils { get; set; }
+        public int NormalOils { get; set; }
+        public int WarningOils { get; set; }
+        public double AverageWear { get; set; }
+        public double AverageContamination { get; set; }
+    }
 }
