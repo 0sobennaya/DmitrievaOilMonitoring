@@ -32,9 +32,9 @@ namespace DmitrievaOilMonitoringApi.Controllers
             return Ok(oil);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutOil(int id, OilDTO oilDTO, [FromQuery] double temperature = 75)
+        public async Task<IActionResult> PutOil(int id, OilDTO oilDTO)
         {
-            var oil = await _service.Update(id, oilDTO, temperature);
+            var oil = await _service.Update(id, oilDTO);
             if (oil == null)
             {
                 return NotFound();
@@ -42,9 +42,9 @@ namespace DmitrievaOilMonitoringApi.Controllers
             return NoContent();
         }
         [HttpPost]
-        public async Task<ActionResult<OilDTO>> PostOil (OilDTO oilDTO, [FromQuery] double temperature = 75)
+        public async Task<ActionResult<OilDTO>> PostOil (OilDTO oilDTO)
         {            
-            var oil = await _service.Add(oilDTO, temperature);
+            var oil = await _service.Add(oilDTO);
             return CreatedAtAction("GetOil", new {id = oil.Id}, oilDTO);
         }
         [HttpDelete("{id}")]

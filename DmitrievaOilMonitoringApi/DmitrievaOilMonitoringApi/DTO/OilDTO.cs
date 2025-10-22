@@ -35,6 +35,15 @@ namespace DmitrievaOilMonitoringApi.DTO
         public double Wear {  get; set; }
         public double Contamination { get; set; }
         public string Status { get; set; }
+        public PumpUsageDTO? PumpUsage { get; set; }
+    }
+
+    public class OilCharacteristicsDTO
+    {
+        public double Wear { get; set; }
+        public double Contamination { get; set; }
+        public string Status { get; set; }
+
     }
     public class CriticalWearDTO
     {

@@ -5,10 +5,10 @@ namespace DmitrievaOilMonitoringApi.Data.Services
 {
     public interface IOilsService
     {
-        Task<IEnumerable<OilDTO>> GetAll();
-        Task<OilDTO> GetById(int id);
-        Task<OilDTO> Update(int id, OilDTO oilDTO, double temperature);
-        Task<Oil> Add(OilDTO oilDTO, double temperature);
+        Task<IEnumerable<OilResponseDTO>> GetAll();
+        Task<OilResponseDTO> GetById(int id);
+        Task<OilResponseDTO> Update(int id, OilDTO oilDTO);
+        Task<OilResponseDTO> Add(OilDTO oilDTO);
         Task Delete(int id);
         Task<IEnumerable<CriticalWearDTO>> GetCriticalWearOils();
         Task <StatisticsDTO> GetStatistics();

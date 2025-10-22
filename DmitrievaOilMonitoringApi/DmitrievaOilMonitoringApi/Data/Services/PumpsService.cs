@@ -47,7 +47,8 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 Power = pump.Power,
                 ShaftRotationFrequency = pump.ShaftRotationFrequency,
                 Efficiency = pump.CalculateEfficiency(),
-                Status = pump.GetOverallStatus()
+                Status = pump.GetOverallStatus(),
+                OilId = pump.OilId
             };
 
             if (pump.Oil != null)
@@ -84,25 +85,13 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         public async Task<PumpResponseDTO> Add(PumpDTO pumpDTO)
         {
             Oil? oil = null;
-
-            // Если в DTO передан объект масла — создаем новый экземпляр
-            if (pumpDTO.Oil != null)
+            if (pumpDTO.OilId.HasValue)
             {
-                oil = new Oil
+                oil = await _context.Oils.FindAsync(pumpDTO.OilId.Value);
+                if (oil == null)
                 {
-                    TAN = pumpDTO.Oil.TAN,
-                    Viscosity = pumpDTO.Oil.Viscosity,
-                    WaterContent = pumpDTO.Oil.WaterContent,
-                    InstallationDate = DateTime.UtcNow,
-                    OperatingHours = 0,
-                    StartStopCycles = 0,
-                    Wear = 0,
-                    Contamination = 0,
-                    Status = "Нормальное"
-                };
-
-                _context.Oils.Add(oil);
-                await _context.SaveChangesAsync();
+                    throw new ArgumentException($"Масло с ID {pumpDTO.OilId} не найдено");
+                }
             }
 
             var pump = new Pump
@@ -118,7 +107,8 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 OilPressure = pumpDTO.OilPressure,
                 Power = pumpDTO.Power,
                 ShaftRotationFrequency = pumpDTO.ShaftRotationFrequency,
-                Oil = oil // может быть null
+                Oil = oil,
+                OilId = oil?.Id
             };
 
             _context.Pumps.Add(pump);
@@ -137,7 +127,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
             }
         }
 
-        public async Task<IEnumerable<PumpDTO>> GetAll()
+        public async Task<IEnumerable<PumpResponseDTO>> GetAll()
         {
             var pumps = await _context.Pumps
                 .Include(p => p.Oil)
@@ -182,44 +172,34 @@ namespace DmitrievaOilMonitoringApi.Data.Services
             pump.Power = pumpDTO.Power;
             pump.ShaftRotationFrequency = pumpDTO.ShaftRotationFrequency;
 
-            // Обновляем или создаем масло
-            if (pumpDTO.Oil != null)
+            if (pumpDTO.OilId.HasValue)
             {
-                if (pump.Oil == null)
+                // Если передан новый OilId
+                if (pump.OilId != pumpDTO.OilId.Value)
                 {
-                    pump.Oil = new Oil
+                    var newOil = await _context.Oils.FindAsync(pumpDTO.OilId.Value);
+                    if (newOil == null)
                     {
-                        TAN = pumpDTO.Oil.TAN,
-                        Viscosity = pumpDTO.Oil.Viscosity,
-                        WaterContent = pumpDTO.Oil.WaterContent,
-                        InstallationDate = DateTime.UtcNow,
-                        OperatingHours = 0,
-                        StartStopCycles = 0,
-                        Wear = 0,
-                        Contamination = 0,
-                        Status = "Нормальное"
-                    };
-                    _context.Oils.Add(pump.Oil);
-                }
-                else
-                {
-                    pump.Oil.TAN = pumpDTO.Oil.TAN;
-                    pump.Oil.Viscosity = pumpDTO.Oil.Viscosity;
-                    pump.Oil.WaterContent = pumpDTO.Oil.WaterContent;
-                    pump.Oil.InstallationDate = pumpDTO.Oil.InstallationDate ?? DateTime.UtcNow;
-                    pump.Oil.OperatingHours = pumpDTO.Oil.OperatingHours;
-                    pump.Oil.StartStopCycles = pumpDTO.Oil.StartStopCycles;
+                        throw new ArgumentException($"Масло с ID {pumpDTO.OilId} не найдено");
+                    }
+
+                    pump.OilId = newOil.Id;
+                    pump.Oil = newOil;
                 }
             }
             else
             {
-                // удаление масла из насоса
+                // Если OilId = null, удаляем масло из насоса
+                pump.OilId = null;
                 pump.Oil = null;
             }
 
             await _context.SaveChangesAsync();
 
-            return PumpToResponseDTO(pump);
+            // Отключаем отслеживание для свежей загрузки данных
+            _context.Entry(pump).State = EntityState.Detached;
+
+            return await GetById(id);
         }
 
     }

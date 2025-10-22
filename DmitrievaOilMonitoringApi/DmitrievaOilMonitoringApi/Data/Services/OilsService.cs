@@ -25,8 +25,9 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 StartStopCycles = oil.StartStopCycles
                 
             };
-        private static OilResponseDTO OilToResponseDTO(Oil oil) =>
-            new OilResponseDTO
+        private static OilResponseDTO OilToResponseDTO(Oil oil, Pump? pump = null)
+        {
+            var dto = new OilResponseDTO
             {
                 Id = oil.Id,
                 TAN = oil.TAN,
@@ -34,13 +35,38 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 WaterContent = oil.WaterContent,
                 InstallationDate = oil.InstallationDate,
                 OperatingHours = oil.OperatingHours,
-                StartStopCycles = oil.StartStopCycles,
-                Wear = oil.Wear,
-                Contamination = oil.Contamination,
-                Status = oil.Status
+                StartStopCycles = oil.StartStopCycles
             };
 
-        public async Task<Oil> Add(OilDTO oilDTO, double temperature)
+            // Если масло используется в насосе
+            if (pump != null)
+            {
+                // Вычисляем характеристики с учётом температуры насоса
+                dto.Wear = oil.GetWear(pump.OilTemperature);
+                dto.Contamination = oil.GetContamination(pump.OilTemperature);
+                dto.Status = oil.GetOilStatus(pump.OilTemperature);
+
+                // Добавляем информацию о насосе
+                dto.PumpUsage = new PumpUsageDTO
+                {
+                    PumpId = pump.Id,
+                    OilTemperature = pump.OilTemperature,
+                    PumpStatus = pump.GetOverallStatus()
+                };
+            }
+            else
+            {
+                // Если масло не используется — дефолтные значения
+                dto.Wear = oil.Wear;
+                dto.Contamination = oil.Contamination;
+                dto.Status = oil.Status;
+                dto.PumpUsage = null;
+            }
+
+            return dto;
+        }
+
+        public async Task<OilResponseDTO> Add(OilDTO oilDTO)
         {            
             var oil = new Oil
             {
@@ -52,13 +78,13 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 StartStopCycles = oilDTO.StartStopCycles
 
             };
-            oil.Wear = oil.GetWear(temperature);
-            oil.Contamination = oil.GetContamination(temperature);
-            oil.Status = oil.GetOilStatus(temperature);
+            oil.Wear = 0.0;
+            oil.Contamination = 0.0;
+            oil.Status = "Нормальное";
 
             _context.Oils.Add(oil);
             await _context.SaveChangesAsync();
-            return oil;
+            return OilToResponseDTO(oil);
             
         }
 
@@ -72,17 +98,28 @@ namespace DmitrievaOilMonitoringApi.Data.Services
             }
         }
 
-        public async Task<IEnumerable<OilDTO>> GetAll()
+        public async Task<IEnumerable<OilResponseDTO>> GetAll()
         {
-            return await _context.Oils.Select( x => OilToResponseDTO(x)).ToListAsync();
-        }
-        public async Task<OilDTO> GetById(int id)
-        {
-            var oil =  await _context.Oils.FindAsync(id);
-            return OilToResponseDTO(oil);
+            var oils = await _context.Oils
+                .AsNoTracking()
+                .ToListAsync();
+
+            var result = new List<OilResponseDTO>();
+
+            foreach (var oil in oils)
+            {
+                // Ищем насос, в котором используется это масло
+                var pump = await _context.Pumps
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.OilId == oil.Id);
+
+                result.Add(OilToResponseDTO(oil, pump));
+            }
+
+            return result;
         }
 
-        public async Task<OilDTO> Update(int id, OilDTO oilDTO, double temperature)
+        public async Task<OilResponseDTO> Update(int id, OilDTO oilDTO)
         {
             var oil = await _context.Oils.FindAsync(id);
             if (oil != null) {
@@ -91,12 +128,30 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 oil.WaterContent = oilDTO.WaterContent;
                 oil.OperatingHours = oilDTO.OperatingHours;
                 oil.StartStopCycles = oilDTO.StartStopCycles;
-                oil.Wear = oil.GetWear(temperature);
-                oil.Contamination = oil.GetContamination(temperature);
-                oil.Status = oil.GetOilStatus(temperature);
                 await _context.SaveChangesAsync();
             }
-            return oilDTO;
+            // Ищем насос для отображения актуальных характеристик
+            var pump = await _context.Pumps
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.OilId == oil.Id);
+
+            return OilToResponseDTO(oil, pump);
+
+        }
+        public OilCharacteristicsDTO CalculateCharacteristics(Oil oil, double temperature)
+        {
+            if (oil == null) return null;
+
+            var wear = oil.GetWear(temperature);
+            var contamination = oil.GetContamination(temperature);
+            var status = oil.GetOilStatus(temperature);
+
+            return new OilCharacteristicsDTO
+            {
+                Wear = wear,
+                Contamination = contamination,
+                Status = status
+            };
         }
 
         //============ LINQ ================\\
@@ -140,6 +195,22 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 AverageContamination = averageContamination
             };
 
+        }
+
+        public async Task<OilResponseDTO?> GetById(int id)
+        {
+            var oil = await _context.Oils
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (oil == null) return null;
+
+            // Ищем насос, в котором используется это масло
+            var pump = await _context.Pumps
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.OilId == oil.Id);
+
+            return OilToResponseDTO(oil, pump);
         }
     }
 }

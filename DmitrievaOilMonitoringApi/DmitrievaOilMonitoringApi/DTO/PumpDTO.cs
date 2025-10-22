@@ -33,7 +33,7 @@ namespace DmitrievaOilMonitoringApi.DTO
         [Range(0, double.MaxValue, ErrorMessage = "Частота вращения должна быть положительным числом")]
         public double ShaftRotationFrequency { get; set; }
         public string Status { get; set; } = string.Empty;
-        public OilResponseDTO? Oil { get; set; }
+        public int? OilId { get; set; }
     }
 
     public class PumpResponseDTO : PumpDTO
@@ -41,12 +41,18 @@ namespace DmitrievaOilMonitoringApi.DTO
         public int Id { get; set; }
         // Вычисляемые характеристики насоса
         public double Efficiency { get; set; }
+        public OilResponseDTO? Oil { get; set; }
 
         // Вычисляемые характеристики масла для этого насоса
         public double? OilWear{ get; set; }
         public double? OilContamination { get; set; }
         public string? OilStatus { get; set; } = string.Empty;
     }
-    
+    public class PumpUsageDTO
+    {
+        public int PumpId { get; set; }
+        public double OilTemperature { get; set; }
+        public string PumpStatus { get; set; } = string.Empty;
+    }
 
 }

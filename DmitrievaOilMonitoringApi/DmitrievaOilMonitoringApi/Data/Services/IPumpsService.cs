@@ -5,7 +5,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
 {
     public interface IPumpsService
     {
-        Task<IEnumerable<PumpDTO>> GetAll();
+        Task<IEnumerable<PumpResponseDTO>> GetAll();
         Task<PumpResponseDTO> GetById(int id);
         Task<PumpResponseDTO> Update(int id, PumpDTO pumpDTO);
         Task<PumpResponseDTO> Add(PumpDTO pumpDTO);
