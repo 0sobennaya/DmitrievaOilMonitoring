@@ -12,6 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<OilMonitoringApiContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
 
 builder.Services.AddScoped<IOilsService, OilsService>();
+builder.Services.AddScoped<IPumpsService, PumpsService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();

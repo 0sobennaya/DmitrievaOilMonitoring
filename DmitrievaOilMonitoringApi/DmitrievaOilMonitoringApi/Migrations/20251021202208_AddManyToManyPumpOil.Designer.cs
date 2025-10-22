@@ -4,6 +4,7 @@ using DmitrievaOilMonitoringApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DmitrievaOilMonitoringApi.Migrations
 {
     [DbContext(typeof(OilMonitoringApiContext))]
-    partial class OilMonitoringApiContextModelSnapshot : ModelSnapshot
+    [Migration("20251021202208_AddManyToManyPumpOil")]
+    partial class AddManyToManyPumpOil
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,9 +77,6 @@ namespace DmitrievaOilMonitoringApi.Migrations
                     b.Property<int>("Mode")
                         .HasColumnType("int");
 
-                    b.Property<int?>("OilId")
-                        .HasColumnType("int");
-
                     b.Property<double>("OilLevel")
                         .HasColumnType("float");
 
@@ -109,21 +109,74 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OilId")
-                        .IsUnique()
-                        .HasFilter("[OilId] IS NOT NULL");
-
                     b.ToTable("Pumps");
+                });
+
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.PumpOil", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("InitialOperatingHours")
+                        .HasColumnType("float");
+
+                    b.Property<int>("InitialStartStopCycles")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OilId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PumpId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RemovedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OilId");
+
+                    b.HasIndex("PumpId", "IsActive");
+
+                    b.ToTable("PumpOils");
+                });
+
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.PumpOil", b =>
+                {
+                    b.HasOne("DmitrievaOilMonitoringApi.Models.Oil", "Oil")
+                        .WithMany("PumpOils")
+                        .HasForeignKey("OilId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DmitrievaOilMonitoringApi.Models.Pump", "Pump")
+                        .WithMany("PumpOils")
+                        .HasForeignKey("PumpId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Oil");
+
+                    b.Navigation("Pump");
+                });
+
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.Oil", b =>
+                {
+                    b.Navigation("PumpOils");
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.Pump", b =>
                 {
-                    b.HasOne("DmitrievaOilMonitoringApi.Models.Oil", "Oil")
-                        .WithOne()
-                        .HasForeignKey("DmitrievaOilMonitoringApi.Models.Pump", "OilId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Oil");
+                    b.Navigation("PumpOils");
                 });
 #pragma warning restore 612, 618
         }

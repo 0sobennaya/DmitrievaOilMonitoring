@@ -11,11 +11,11 @@
         public double OperatingHours { get; set; }
         public int StartStopCycles { get; set; }
 
-        public double Wear {  get; set; }
-        public double Contamination{ get; set; }
-        public string Status { get; set; }
+        public double Wear { get; set; } = 0.0;
+        public double Contamination { get; set; } = 0.0;
+        public string Status { get; set; } = "Нормальное";
         //methods
-
+        
         public double GetWear(double currentTemperature)
         {
             double tempFactor = currentTemperature > 80 ? 1.5 : 1.0;
@@ -44,6 +44,13 @@
                 return "Нормальное";
         }
 
+        public bool IsOilGood()
+        {
+            return Wear < 10 &&
+                   Contamination < 5 &&
+                   WaterContent < 1 &&
+                   TAN < 2.0;
+        }
         public void UpdateOperatingHours( double additionalHours)
         {
             OperatingHours += additionalHours;

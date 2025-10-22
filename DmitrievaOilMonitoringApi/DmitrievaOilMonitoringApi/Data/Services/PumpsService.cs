@@ -1,0 +1,226 @@
+﻿using DmitrievaOilMonitoringApi.DTO;
+using DmitrievaOilMonitoringApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
+using System.Security.Cryptography;
+
+namespace DmitrievaOilMonitoringApi.Data.Services
+{
+    public class PumpsService : IPumpsService
+    {
+        private readonly OilMonitoringApiContext _context;
+        public PumpsService(OilMonitoringApiContext context)
+        {
+            _context = context;
+        }
+        private static PumpDTO PumpToDTO(Pump pump) =>
+            new PumpDTO
+            {
+                Mode = pump.Mode,
+                PressureIn = pump.PressureIn,
+                PressureOut = pump.PressureOut,
+                TemperatureBody = pump.TemperatureBody,
+                TemperatureBearing = pump.TemperatureBearing,
+                Vibration = pump.Vibration,
+                OilLevel = pump.OilLevel,
+                OilPressure = pump.OilPressure,
+                Power = pump.Power,
+                ShaftRotationFrequency = pump.ShaftRotationFrequency,
+                Status = pump.GetOverallStatus()
+
+            };
+
+        private static PumpResponseDTO PumpToResponseDTO(Pump pump)
+        {
+            var dto = new PumpResponseDTO
+            {
+                Id = pump.Id,
+                Mode = pump.Mode,
+                PressureIn = pump.PressureIn,
+                PressureOut = pump.PressureOut,
+                TemperatureBody = pump.TemperatureBody,
+                TemperatureBearing = pump.TemperatureBearing,
+                Vibration = pump.Vibration,
+                OilLevel = pump.OilLevel,
+                OilTemperature = pump.OilTemperature,
+                OilPressure = pump.OilPressure,
+                Power = pump.Power,
+                ShaftRotationFrequency = pump.ShaftRotationFrequency,
+                Efficiency = pump.CalculateEfficiency(),
+                Status = pump.GetOverallStatus()
+            };
+
+            if (pump.Oil != null)
+            {
+                dto.Oil = new OilResponseDTO
+                {
+                    Id = pump.Oil.Id,
+                    TAN = pump.Oil.TAN,
+                    Viscosity = pump.Oil.Viscosity,
+                    WaterContent = pump.Oil.WaterContent,
+                    InstallationDate = pump.Oil.InstallationDate,
+                    OperatingHours = pump.Oil.OperatingHours,
+                    StartStopCycles = pump.Oil.StartStopCycles,
+                    Wear = pump.Oil.GetWear(pump.OilTemperature),
+                    Contamination = pump.Oil.GetContamination(pump.OilTemperature),
+                    Status = pump.Oil.GetOilStatus(pump.OilTemperature)
+                };
+
+                dto.OilWear = dto.Oil.Wear;
+                dto.OilContamination = dto.Oil.Contamination;
+                dto.OilStatus = dto.Oil.Status;
+            }
+            else
+            {
+                dto.Oil = null;
+                dto.OilWear = 0;
+                dto.OilContamination = 0;
+                dto.OilStatus = "Масло отсутствует";
+            }
+
+            return dto;
+        }
+
+        public async Task<PumpResponseDTO> Add(PumpDTO pumpDTO)
+        {
+            Oil? oil = null;
+
+            // Если в DTO передан объект масла — создаем новый экземпляр
+            if (pumpDTO.Oil != null)
+            {
+                oil = new Oil
+                {
+                    TAN = pumpDTO.Oil.TAN,
+                    Viscosity = pumpDTO.Oil.Viscosity,
+                    WaterContent = pumpDTO.Oil.WaterContent,
+                    InstallationDate = DateTime.UtcNow,
+                    OperatingHours = 0,
+                    StartStopCycles = 0,
+                    Wear = 0,
+                    Contamination = 0,
+                    Status = "Нормальное"
+                };
+
+                _context.Oils.Add(oil);
+                await _context.SaveChangesAsync();
+            }
+
+            var pump = new Pump
+            {
+                Mode = pumpDTO.Mode,
+                PressureIn = pumpDTO.PressureIn,
+                PressureOut = pumpDTO.PressureOut,
+                TemperatureBody = pumpDTO.TemperatureBody,
+                TemperatureBearing = pumpDTO.TemperatureBearing,
+                Vibration = pumpDTO.Vibration,
+                OilLevel = pumpDTO.OilLevel,
+                OilTemperature = pumpDTO.OilTemperature,
+                OilPressure = pumpDTO.OilPressure,
+                Power = pumpDTO.Power,
+                ShaftRotationFrequency = pumpDTO.ShaftRotationFrequency,
+                Oil = oil // может быть null
+            };
+
+            _context.Pumps.Add(pump);
+            await _context.SaveChangesAsync();
+
+            return PumpToResponseDTO(pump);
+        }
+
+        public async Task Delete(int id)
+        {
+            var pump = await _context.Pumps.FindAsync(id);
+            if (pump != null)
+            {
+                _context.Pumps.Remove(pump);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<PumpDTO>> GetAll()
+        {
+            var pumps = await _context.Pumps
+                .Include(p => p.Oil)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return pumps.Select(PumpToResponseDTO).ToList();
+        }
+
+        public async Task<PumpResponseDTO> GetById(int id)
+        {
+            var pump = await _context.Pumps
+                .AsNoTracking()
+                .Include(p => p.Oil)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pump == null)
+                return null;
+
+            return PumpToResponseDTO(pump);
+        }
+
+        public async Task<PumpResponseDTO> Update(int id, PumpDTO pumpDTO)
+        {
+            var pump = await _context.Pumps
+                .Include(p => p.Oil)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pump == null)
+                return null;
+
+            // Обновляем параметры насоса
+            pump.Mode = pumpDTO.Mode;
+            pump.PressureIn = pumpDTO.PressureIn;
+            pump.PressureOut = pumpDTO.PressureOut;
+            pump.TemperatureBody = pumpDTO.TemperatureBody;
+            pump.TemperatureBearing = pumpDTO.TemperatureBearing;
+            pump.Vibration = pumpDTO.Vibration;
+            pump.OilLevel = pumpDTO.OilLevel;
+            pump.OilTemperature = pumpDTO.OilTemperature;
+            pump.OilPressure = pumpDTO.OilPressure;
+            pump.Power = pumpDTO.Power;
+            pump.ShaftRotationFrequency = pumpDTO.ShaftRotationFrequency;
+
+            // Обновляем или создаем масло
+            if (pumpDTO.Oil != null)
+            {
+                if (pump.Oil == null)
+                {
+                    pump.Oil = new Oil
+                    {
+                        TAN = pumpDTO.Oil.TAN,
+                        Viscosity = pumpDTO.Oil.Viscosity,
+                        WaterContent = pumpDTO.Oil.WaterContent,
+                        InstallationDate = DateTime.UtcNow,
+                        OperatingHours = 0,
+                        StartStopCycles = 0,
+                        Wear = 0,
+                        Contamination = 0,
+                        Status = "Нормальное"
+                    };
+                    _context.Oils.Add(pump.Oil);
+                }
+                else
+                {
+                    pump.Oil.TAN = pumpDTO.Oil.TAN;
+                    pump.Oil.Viscosity = pumpDTO.Oil.Viscosity;
+                    pump.Oil.WaterContent = pumpDTO.Oil.WaterContent;
+                    pump.Oil.InstallationDate = pumpDTO.Oil.InstallationDate ?? DateTime.UtcNow;
+                    pump.Oil.OperatingHours = pumpDTO.Oil.OperatingHours;
+                    pump.Oil.StartStopCycles = pumpDTO.Oil.StartStopCycles;
+                }
+            }
+            else
+            {
+                // удаление масла из насоса
+                pump.Oil = null;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return PumpToResponseDTO(pump);
+        }
+
+    }
+}

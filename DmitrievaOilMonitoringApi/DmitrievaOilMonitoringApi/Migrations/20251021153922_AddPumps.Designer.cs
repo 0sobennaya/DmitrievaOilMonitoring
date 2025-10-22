@@ -4,6 +4,7 @@ using DmitrievaOilMonitoringApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DmitrievaOilMonitoringApi.Migrations
 {
     [DbContext(typeof(OilMonitoringApiContext))]
-    partial class OilMonitoringApiContextModelSnapshot : ModelSnapshot
+    [Migration("20251021153922_AddPumps")]
+    partial class AddPumps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,9 +112,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OilId")
-                        .IsUnique()
-                        .HasFilter("[OilId] IS NOT NULL");
+                    b.HasIndex("OilId");
 
                     b.ToTable("Pumps");
                 });
@@ -119,9 +120,8 @@ namespace DmitrievaOilMonitoringApi.Migrations
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.Pump", b =>
                 {
                     b.HasOne("DmitrievaOilMonitoringApi.Models.Oil", "Oil")
-                        .WithOne()
-                        .HasForeignKey("DmitrievaOilMonitoringApi.Models.Pump", "OilId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .WithMany()
+                        .HasForeignKey("OilId");
 
                     b.Navigation("Oil");
                 });
