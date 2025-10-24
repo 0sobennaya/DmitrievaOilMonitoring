@@ -32,7 +32,7 @@ namespace DmitrievaOilMonitoringApi.Controllers
             return Ok(oil);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutOil(int id, OilDTO oilDTO)
+        public async Task<IActionResult> PutOil(int id, OilUpdateDTO oilDTO)
         {
             var oil = await _service.Update(id, oilDTO);
             if (oil == null)

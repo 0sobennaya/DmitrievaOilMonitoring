@@ -53,11 +53,11 @@
                 return "Нормальная";
         }
 
-        public string GetOverallStatus()
+        public string GetOverallStatus(double OilTemperature)
         {
             bool vibrationOk = !IsVibrationCritical();
             bool temperatureOk = GetTemperatureStatus() != "Критическая";
-            bool oilOk = Oil?.IsOilGood() ?? false;
+            bool oilOk = Oil?.IsOilGood(OilTemperature) ?? false;
             bool pressureOk = PressureOut > PressureIn;
 
             if (vibrationOk && temperatureOk && oilOk && pressureOk)

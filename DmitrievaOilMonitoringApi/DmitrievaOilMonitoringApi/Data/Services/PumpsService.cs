@@ -13,22 +13,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         {
             _context = context;
         }
-        private static PumpDTO PumpToDTO(Pump pump) =>
-            new PumpDTO
-            {
-                Mode = pump.Mode,
-                PressureIn = pump.PressureIn,
-                PressureOut = pump.PressureOut,
-                TemperatureBody = pump.TemperatureBody,
-                TemperatureBearing = pump.TemperatureBearing,
-                Vibration = pump.Vibration,
-                OilLevel = pump.OilLevel,
-                OilPressure = pump.OilPressure,
-                Power = pump.Power,
-                ShaftRotationFrequency = pump.ShaftRotationFrequency,
-                Status = pump.GetOverallStatus()
 
-            };
 
         private static PumpResponseDTO PumpToResponseDTO(Pump pump)
         {
@@ -47,7 +32,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 Power = pump.Power,
                 ShaftRotationFrequency = pump.ShaftRotationFrequency,
                 Efficiency = pump.CalculateEfficiency(),
-                Status = pump.GetOverallStatus(),
+                Status = pump.GetOverallStatus(pump.OilTemperature),
                 OilId = pump.OilId
             };
 
@@ -201,6 +186,46 @@ namespace DmitrievaOilMonitoringApi.Data.Services
 
             return await GetById(id);
         }
+        //============ LINQ ================\\
+        public async Task<IEnumerable<PumpsAndOilsHealthDTO>> GetPumpsAndOilsHeath()
+        {
+            var pumps = await _context.Pumps
+                .Include(pump => pump.Oil)
+                .AsNoTracking()
+                .ToListAsync();
+            var query = pumps
+                .Where(pump => pump.Oil != null)
+                .Select(pump => new PumpsAndOilsHealthDTO
+                {
+                    Id = pump.Id,
+                    Mode = pump.Mode,
+                    StartStopCycles = pump.Oil.StartStopCycles,
+                    OperatingHours = pump.Oil.OperatingHours,
+                    OilStatus = pump.OilStatus
+                })
+                .OrderByDescending(pump => pump.OperatingHours)
+                .ToList();
+            return query;
+        }
+        public async Task<IEnumerable<VibrationAndContaminationDTO>> GetVibrationAndContamination()
+        {
+            var pumpsWithOils = await _context.Pumps
+                .Include(p => p.Oil)
+                .AsNoTracking()
+                .ToListAsync();
 
+            var filtered = pumpsWithOils
+                .Where(po => po.Vibration > 8 && po.Oil != null && po.Oil.GetContamination(po.OilTemperature) > 1)
+                .Select(po => new VibrationAndContaminationDTO
+                {
+                    PumpId = po.Id,
+                    Vibration = po.Vibration,
+                    OilContamination = po.Oil.GetContamination(po.OilTemperature),
+                    OilStatus = po.Oil.GetOilStatus(po.OilTemperature)
+                })
+                .ToList();
+
+            return filtered;
+        }
     }
 }

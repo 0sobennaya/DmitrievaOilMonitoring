@@ -14,17 +14,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         {
             _context = context;
         }
-        private static OilDTO OilToDTO(Oil oil) =>
-            new OilDTO
-            {
-                TAN = oil.TAN,
-                Viscosity = oil.Viscosity,
-                WaterContent = oil.WaterContent,
-                InstallationDate = oil.InstallationDate,
-                OperatingHours = oil.OperatingHours,
-                StartStopCycles = oil.StartStopCycles
-                
-            };
+
         private static OilResponseDTO OilToResponseDTO(Oil oil, Pump? pump = null)
         {
             var dto = new OilResponseDTO
@@ -33,7 +23,6 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 TAN = oil.TAN,
                 Viscosity = oil.Viscosity,
                 WaterContent = oil.WaterContent,
-                InstallationDate = oil.InstallationDate,
                 OperatingHours = oil.OperatingHours,
                 StartStopCycles = oil.StartStopCycles
             };
@@ -51,15 +40,15 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 {
                     PumpId = pump.Id,
                     OilTemperature = pump.OilTemperature,
-                    PumpStatus = pump.GetOverallStatus()
+                    PumpStatus = pump.GetOverallStatus(pump.OilTemperature)
                 };
             }
             else
             {
                 // Если масло не используется — дефолтные значения
-                dto.Wear = oil.Wear;
-                dto.Contamination = oil.Contamination;
-                dto.Status = oil.Status;
+                dto.Wear = 0;
+                dto.Contamination = 0;
+                dto.Status = "Нормальное";
                 dto.PumpUsage = null;
             }
 
@@ -78,9 +67,6 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 StartStopCycles = oilDTO.StartStopCycles
 
             };
-            oil.Wear = 0.0;
-            oil.Contamination = 0.0;
-            oil.Status = "Нормальное";
 
             _context.Oils.Add(oil);
             await _context.SaveChangesAsync();
@@ -119,7 +105,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
             return result;
         }
 
-        public async Task<OilResponseDTO> Update(int id, OilDTO oilDTO)
+        public async Task<OilResponseDTO> Update(int id, OilUpdateDTO oilDTO)
         {
             var oil = await _context.Oils.FindAsync(id);
             if (oil != null) {
@@ -157,44 +143,64 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         //============ LINQ ================\\
         public async Task<IEnumerable<CriticalWearDTO>> GetCriticalWearOils()
         {
-            return await _context.Oils.Where(s => s.Status == "Критическое").Select(o => new CriticalWearDTO
-            {
-                Id = o.Id,
-                Wear = o.Wear,
-                Status = o.Status,
-                OperatingHours = o.OperatingHours
-            }).ToListAsync();
+            // Загружаем все масла и все насосы
+            var oils = await _context.Oils.ToListAsync();
+            var pumps = await _context.Pumps.ToListAsync();
+
+            var query =
+                from oil in oils
+                join pump in pumps on oil.Id equals pump.OilId into oilPumps
+                from pump in oilPumps.DefaultIfEmpty()
+                let temperature = pump?.OilTemperature ?? 0
+                let status = oil.GetOilStatus(temperature)
+                where status == "Критическое"
+                select new CriticalWearDTO
+                {
+                    Id = oil.Id,
+                    Wear = oil.GetWear(temperature),
+                    Status = status,
+                    OperatingHours = oil.OperatingHours
+                };
+
+            return query.ToList();
         }
 
         public async Task<StatisticsDTO> GetStatistics()
         {
-            var totalOils = await _context.Oils.CountAsync();
+            var oils = await _context.Oils.ToListAsync();
+            var pumps = await _context.Pumps.ToListAsync();
 
+            var stats =
+                from oil in oils
+                join pump in pumps on oil.Id equals pump.OilId into oilPumps
+                from pump in oilPumps.DefaultIfEmpty()
+                let temperature = pump?.OilTemperature ?? 0
+                select new
+                {
+                    Status = oil.GetOilStatus(temperature),
+                    Wear = oil.GetWear(temperature),
+                    Contamination = oil.GetContamination(temperature)
+                };
+
+            int totalOils = stats.Count();
             if (totalOils == 0)
             {
-                return new StatisticsDTO
-                {
-                    TotalOils = 0,
-                    NormalOils = 0,
-                    WarningOils = 0,
-                    AverageWear = 0,
-                    AverageContamination = 0
-                };
+                return new StatisticsDTO();
             }
-            var normalOils = await _context.Oils.CountAsync(o => o.Status == "Нормальное");
-            var warningOils = await _context.Oils.CountAsync(o => o.Status != "Нормальное");
-            var averageWear = await _context.Oils.AverageAsync(o => o.Wear);
-            var averageContamination = await _context.Oils.AverageAsync(o => o.Contamination);
+
+            int normalOils = stats.Count(s => s.Status == "Нормальное");
+            int warningOils = stats.Count(s => s.Status != "Нормальное");
+            double avgWear = stats.Average(s => s.Wear);
+            double avgContamination = stats.Average(s => s.Contamination);
 
             return new StatisticsDTO
             {
                 TotalOils = totalOils,
                 NormalOils = normalOils,
                 WarningOils = warningOils,
-                AverageWear = averageWear,
-                AverageContamination = averageContamination
+                AverageWear = avgWear,
+                AverageContamination = avgContamination
             };
-
         }
 
         public async Task<OilResponseDTO?> GetById(int id)

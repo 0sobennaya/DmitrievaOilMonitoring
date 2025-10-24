@@ -7,7 +7,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
     {
         Task<IEnumerable<OilResponseDTO>> GetAll();
         Task<OilResponseDTO> GetById(int id);
-        Task<OilResponseDTO> Update(int id, OilDTO oilDTO);
+        Task<OilResponseDTO> Update(int id, OilUpdateDTO oilDTO);
         Task<OilResponseDTO> Add(OilDTO oilDTO);
         Task Delete(int id);
         Task<IEnumerable<CriticalWearDTO>> GetCriticalWearOils();
