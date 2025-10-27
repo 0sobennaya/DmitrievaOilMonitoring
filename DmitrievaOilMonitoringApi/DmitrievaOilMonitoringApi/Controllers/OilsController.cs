@@ -1,5 +1,6 @@
 ﻿using DmitrievaOilMonitoringApi.Data.Services;
 using DmitrievaOilMonitoringApi.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,14 @@ namespace DmitrievaOilMonitoringApi.Controllers
             _service = service;
         }
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<OilDTO>>> GetOils()
         {
             var oils = await _service.GetAll();
             return Ok(oils);
         }
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<OilResponseDTO>> GetOil(int id)
         {
             var oil = await _service.GetById(id);
@@ -32,6 +35,7 @@ namespace DmitrievaOilMonitoringApi.Controllers
             return Ok(oil);
         }
         [HttpPut("{id}")]
+        [Authorize(Roles = "Laborant,Technologist")]
         public async Task<IActionResult> PutOil(int id, OilUpdateDTO oilDTO)
         {
             var oil = await _service.Update(id, oilDTO);
@@ -42,12 +46,14 @@ namespace DmitrievaOilMonitoringApi.Controllers
             return NoContent();
         }
         [HttpPost]
+        [Authorize(Roles = "Laborant,Technologist")]
         public async Task<ActionResult<OilDTO>> PostOil (OilDTO oilDTO)
         {            
             var oil = await _service.Add(oilDTO);
             return CreatedAtAction("GetOil", new {id = oil.Id}, oilDTO);
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Laborant,Technologist")]
         public async Task<IActionResult> DeleteOil(int id)
         {
             await _service.Delete(id);
@@ -56,12 +62,14 @@ namespace DmitrievaOilMonitoringApi.Controllers
         //=========== LINQ ============//
 
         [HttpGet("critical-wear")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<CriticalWearDTO>>> GetCriticalWearOils()
         {
             var oils = await _service.GetCriticalWearOils();
             return Ok(oils);
         }
         [HttpGet("oil-statistics")]
+        [Authorize]
         public async Task<ActionResult<StatisticsDTO>> GetStatistics()
         {
             var statistics = await _service.GetStatistics();
