@@ -23,6 +23,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 TAN = oil.TAN,
                 Viscosity = oil.Viscosity,
                 WaterContent = oil.WaterContent,
+                InstallationDate = oil.InstallationDate,
                 OperatingHours = oil.OperatingHours,
                 StartStopCycles = oil.StartStopCycles
             };

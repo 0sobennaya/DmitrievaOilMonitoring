@@ -41,6 +41,7 @@ namespace DmitrievaOilMonitoringApi.Controllers
             var oil = await _service.Update(id, oilDTO);
             if (oil == null)
             {
+
                 return NotFound();
             }
             return NoContent();

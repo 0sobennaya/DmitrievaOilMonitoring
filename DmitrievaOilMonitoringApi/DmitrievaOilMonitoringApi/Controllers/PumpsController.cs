@@ -64,15 +64,15 @@ namespace DmitrievaOilMonitoringApi.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<PumpsAndOilsHealthDTO>>> GetPumpsAndOilsHealth()
         {
-            var pumps = await _service.GetPumpsAndOilsHeath();
+            var pumps = await _service.GetPumpsAndOilsHealth();
             return Ok(pumps);
         }
 
-        [HttpGet("vibration-and-contanimation")]
+        [HttpGet("pump-vibration-and-oil-contanimation")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<VibrationAndContaminationDTO>>> GetVibrationAndContamination()
+        public async Task<ActionResult<IEnumerable<VibrationAndContaminationDTO>>> GetPumpVibrationAndOilContamination()
         {
-            var pumps = await _service.GetVibrationAndContamination();
+            var pumps = await _service.GetPumpVibrationAndOilContamination();
             return Ok(pumps);
         }
     }

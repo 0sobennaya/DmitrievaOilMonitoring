@@ -186,8 +186,8 @@ namespace DmitrievaOilMonitoringApi.Data.Services
 
             return await GetById(id);
         }
-        //============ LINQ ================\\
-        public async Task<IEnumerable<PumpsAndOilsHealthDTO>> GetPumpsAndOilsHeath()
+        //============ LINQ ================\\ 
+        public async Task<IEnumerable<PumpsAndOilsHealthDTO>> GetPumpsAndOilsHealth()
         {
             var pumps = await _context.Pumps
                 .Include(pump => pump.Oil)
@@ -207,7 +207,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 .ToList();
             return query;
         }
-        public async Task<IEnumerable<VibrationAndContaminationDTO>> GetVibrationAndContamination()
+        public async Task<IEnumerable<VibrationAndContaminationDTO>> GetPumpVibrationAndOilContamination()
         {
             var pumpsWithOils = await _context.Pumps
                 .Include(p => p.Oil)
@@ -215,7 +215,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 .ToListAsync();
 
             var filtered = pumpsWithOils
-                .Where(po => po.Vibration > 8 && po.Oil != null && po.Oil.GetContamination(po.OilTemperature) > 1)
+                .Where(po => po.Vibration > 8 && po.Oil != null)
                 .Select(po => new VibrationAndContaminationDTO
                 {
                     PumpId = po.Id,

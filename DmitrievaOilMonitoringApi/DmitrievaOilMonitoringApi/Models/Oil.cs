@@ -14,12 +14,19 @@
         
         public double GetWear(double currentTemperature)
         {
+            if (OperatingHours <= 0 && StartStopCycles <= 0)
+                return 0;
+
             double tempFactor = currentTemperature > 80 ? 1.5 : 1.0;
             return Math.Round((OperatingHours / 1000.0) * tempFactor + StartStopCycles / 100.0, 2);
         }
 
         public double GetContamination(double currentTemperature)
+
         {
+            if (OperatingHours <= 0)
+                return 0;
+
             double tempFactor = currentTemperature > 90 ? 1.3 : 1.0;
             double waterFactor = WaterContent > 0.5 ? 2.0 : 1.0;
             return Math.Round((OperatingHours / 2000.0) * waterFactor * tempFactor, 2);

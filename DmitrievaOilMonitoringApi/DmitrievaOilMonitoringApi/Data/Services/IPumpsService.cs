@@ -10,7 +10,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         Task<PumpResponseDTO> Update(int id, PumpDTO pumpDTO);
         Task<PumpResponseDTO> Add(PumpDTO pumpDTO);
         Task Delete(int id);
-        Task<IEnumerable<PumpsAndOilsHealthDTO>> GetPumpsAndOilsHeath();
-        Task<IEnumerable<VibrationAndContaminationDTO>> GetVibrationAndContamination();
+        Task<IEnumerable<PumpsAndOilsHealthDTO>> GetPumpsAndOilsHealth();
+        Task<IEnumerable<VibrationAndContaminationDTO>> GetPumpVibrationAndOilContamination();
     }
 }
