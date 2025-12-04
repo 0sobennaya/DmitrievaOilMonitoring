@@ -4,9 +4,9 @@
 
 .sidebar {
   width: 260px;
-  background: #0F1F2E;
+  background: #0D2137;
   border-radius: 0%;
-  border-right: 1px solid #04406c;
+  border-right: 2px solid #04406c;
 }
  
 .content {
@@ -15,7 +15,7 @@
 }
 
 .active-link {
-  background-color: #0E324B;
+  background-color: #1A2F45;
   font-weight: 600;
 } 
 
