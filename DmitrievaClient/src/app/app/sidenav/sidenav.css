@@ -1,19 +1,24 @@
 .layout {
-  height: 100vh;
+  height: calc(100vh);
 }
 
 .sidebar {
   width: 260px;
   background: #0F1F2E;
-  color: #8892A6;
+  border-radius: 0%;
+  border-right: 1px solid #04406c;
 }
-
+ 
 .content {
   padding: 16px;
   background: #0A1628;
 }
+
 .active-link {
   background-color: #0E324B;
   font-weight: 600;
-  color: #0A9FF4;
-}
+} 
+
+.mat-mdc-nav-list .mat-mdc-list-item {
+    border-radius: 0%;
+ }

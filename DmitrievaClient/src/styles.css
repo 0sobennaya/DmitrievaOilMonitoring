@@ -2,6 +2,7 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-:root{
-    background: #0A1628;
+.mdc-list-item__primary-text {
+  color: #0B9DF4 !important;
+  text-transform: uppercase;
 }

@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import { PumpsPage } from './app/pumps-page/pumps-page';
-import { OilsPage } from './app/oils-page/oils-page';
-
+import { PumpPage } from './app/pump-page/pump-page';
+import { OilPage } from './app/oil-page/oil-page';
 export const routes: Routes = [
-    { path: '', redirectTo: 'pumps', pathMatch: 'full' },
-    { path: 'pumps', component: PumpsPage },
-    { path: 'oils', component: OilsPage }
+    
+  { path: '', redirectTo: 'pumps', pathMatch: 'full' },
+  { path: 'pumps', component: PumpPage },
+  { path: 'oils', component: OilPage }
 ];
