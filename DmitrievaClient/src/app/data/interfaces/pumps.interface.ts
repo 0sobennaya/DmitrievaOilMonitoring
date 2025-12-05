@@ -1,0 +1,21 @@
+export interface PumpInterface{
+    id : number,
+    efficiency : number,
+    status: string,
+    oilWear: number,
+    oilContamination: number,
+    oilStatus: string,
+    oil: null,
+    mode: number,
+    pressureIn: number,
+    pressureOut: number,
+    temperatureBody: number,
+    temperatureBearing: number,
+    vibration: number,
+    oilLevel: number,
+    oilTemperature: number,
+    oilPressure: number,
+    power: number,
+    shaftRotationFrequency: number,
+    oilId: number | null
+}

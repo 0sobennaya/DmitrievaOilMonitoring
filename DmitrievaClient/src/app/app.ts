@@ -10,4 +10,5 @@ import { Sidenav } from './app/sidenav/sidenav';
 })
 export class App {
   protected readonly title = signal('DmitrievaClient');
+  
 }

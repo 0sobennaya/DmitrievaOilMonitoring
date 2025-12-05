@@ -1,4 +1,6 @@
-<h1>Насосы</h1>
-    <p>Здесь будет список и карточки насосов.</p>
-    <app-pump-card></app-pump-card>
-    <app-pump-card></app-pump-card>
+<div class="pump-card__wrapper">
+  @for (pump of pumps; track pump.id) {
+      <app-pump-card [pump]="pump"></app-pump-card>
+  }
+</div>
+

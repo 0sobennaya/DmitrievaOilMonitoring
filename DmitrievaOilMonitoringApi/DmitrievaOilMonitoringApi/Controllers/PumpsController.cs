@@ -16,7 +16,7 @@ namespace DmitrievaOilMonitoringApi.Controllers
             _service = service;
         }
         [HttpGet]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<IEnumerable<PumpResponseDTO>>> GetPumps()
         {
             var pumps = await _service.GetAll();
