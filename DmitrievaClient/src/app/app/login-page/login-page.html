@@ -1,0 +1,23 @@
+<div class="host">
+  <form class="login-form"
+   [formGroup]="form"
+   (ngSubmit)="onSubmit($event)"
+   >
+    <h1 class="h1">Вход</h1>
+    <label class="title">
+      Логин
+      <input 
+      formControlName="username"
+      class="input-text" type="text" placeholder="Введите логин">
+    </label>
+    <label class="title">
+      Пароль
+      <input
+      formControlName="password"
+      class="input-text" type="password" placeholder="Введите пароль">
+    </label>
+    <button class="btn" type="submit">Войти</button>
+  </form>
+  
+  <img src="assets/logo_big.svg" alt="Logo" class="logo">
+</div>

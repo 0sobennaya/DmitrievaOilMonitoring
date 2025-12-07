@@ -1,4 +1,4 @@
-.pump-card {
+.mat-mdc-card {
   background: #0d2137;
   border-radius: 8px;
   border: 1px solid #1f5fa8;
@@ -6,9 +6,11 @@
   color: #ffffff;
 }
 
+/* Шапка карточки - название, статус, масло */
 .card-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 8px;
@@ -19,6 +21,9 @@
   font-weight: 700;
   font-size: 14px;
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-status {
@@ -29,14 +34,39 @@
   font-size: 12px;
   font-weight: 700;
 }
-.card-oil{
+
+.card-oil {
   font-weight: 700;
   font-size: 14px;
   text-transform: uppercase;
-
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* Три заголовка (ДАВЛЕНИЕ, ТЕМПЕРАТУРА, ЭНЕРГИЯ) */
+.card-header-titles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1f5fa8;
+}
 
+.header-title-section {
+  text-align: center;
+}
+
+.header-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4da6ff;
+  text-transform: uppercase;
+}
+
+/* Три секции с параметрами */
 .card-sections {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -48,14 +78,6 @@
   background: #1a2f45;
   border-radius: 6px;
   padding: 12px;
-}
-
-.section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #4da6ff;
-  text-transform: uppercase;
-  margin-bottom: 8px;
 }
 
 .params {
@@ -85,7 +107,7 @@
   color: #999;
 }
 
-
+/* Четыре большие карточки внизу */
 .card-big-values {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -96,22 +118,41 @@
   background: #ffffff;
   color: #0d2137;
   border-radius: 6px;
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60px;
   text-align: center;
 }
 
 .big-value .title {
-  display: block;
   font-size: 10px;
   font-weight: 700;
   color: #4da6ff;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .big-value .value {
-  display: block;
   font-size: 18px;
   font-weight: 700;
   color: #0d2137;
+}
+
+/* Половина экрана*/
+@media (max-width: 1024px) {
+  .card-sections {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .card-big-values {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mat-mdc-card {
+    padding: 12px;
+  }
 }

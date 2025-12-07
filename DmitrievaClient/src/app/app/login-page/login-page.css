@@ -1,0 +1,80 @@
+.host {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100dvh;
+  align-items: center;
+  gap: 40px;
+  padding: 0 5%;
+  background: #0d2137;
+}
+
+.login-form {
+  background: #0a1628;
+  color: #0b9df4;
+  padding: 40px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.h1 {
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 800;
+  margin: 0;
+  color: #ffffff;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-text {
+  border: 1px solid #04406c;
+  border-radius: 4px;
+  background-color: #1a2f45;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 21px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.input-text:focus {
+  border-color: #0b9df4;
+}
+
+.btn {
+  border: none;
+  background: #0b9df4;
+  color: #0a1628;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 24px;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  background: #0aa0e8;
+}
+
+.logo {
+  height: auto;
+  justify-self: center;
+}
+.btn:hover {
+  background: #0aa0e8;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}

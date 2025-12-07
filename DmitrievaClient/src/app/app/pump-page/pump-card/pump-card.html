@@ -1,20 +1,43 @@
 @if (pump) {
     <mat-card class="app-pump-card">
+      <!-- Шапка карточки -->
       <div class="card-header">
         <span class="card-title">НАСОС №{{ pump.id }}</span>
-        <span class="card-status"> Режим {{pump.mode}}</span>
-        <!-- Проверка наличия масла -->
+        @if (pump.mode == 0) {
+            <span class="card-status">Работает</span>
+        } @else if (pump.mode == 1) {
+            <span class="card-status">Остановлен</span>
+        } @else if (pump.mode == 2) {
+            <span class="card-status">Резерв</span>
+        } @else if (pump.mode == 3) {
+            <span class="card-status">Ремонт</span>
+        } @else {
+            <span class="card-status">Неизвестно</span>
+        }
         @if (pump.oil != null) {
             <span class="card-oil">Масло №{{pump.oilId}}</span>
         } @else {
-            <span class="card-oil">Масло отсутствует</span>
+            <span class="card-oil">Нет масла</span>
         }
-    </div>
+      </div>
 
+      <!-- Три заголовка в строку -->
+      <div class="card-header-titles">
+        <div class="header-title-section">
+          <span class="header-title">ДАВЛЕНИЕ</span>
+        </div>
+        <div class="header-title-section">
+          <span class="header-title">ТЕМПЕРАТУРА</span>
+        </div>
+        <div class="header-title-section">
+          <span class="header-title">ЭНЕРГИЯ</span>
+        </div>
+      </div>
+
+      <!-- Три секции данных -->
       <div class="card-sections">
         <!-- Давление -->
         <div class="card-section">
-          <div class="section-title">ДАВЛЕНИЕ</div>
           <div class="params">
             <div class="param">
               <span>Вход</span>
@@ -31,7 +54,6 @@
     
         <!-- Температура -->
         <div class="card-section">
-          <div class="section-title">ТЕМПЕРАТУРА</div>
           <div class="params">
             <div class="param">
               <span>Корпус</span>
@@ -48,7 +70,6 @@
     
         <!-- Энергия -->
         <div class="card-section">
-          <div class="section-title">ЭНЕРГИЯ</div>
           <div class="params">
             <div class="param">
               <span>Мощность</span>
@@ -84,6 +105,6 @@
         </div>
       </div>
     </mat-card>
-}@else {
+} @else {
     <h1>Нет информации о насосах</h1>
 }

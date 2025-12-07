@@ -43,30 +43,43 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         public async Task<ActionResult<TokenDTO>> Token([FromBody] LoginDTO loginDTO)
         {
 
-            var identity = await GetIdentity(loginDTO.Username, loginDTO.Password);
-
-            var now = DateTime.UtcNow;
-
-            var jwt = new JwtSecurityToken(
-                issuer: AuthOptions.ISSUER,
-                audience: AuthOptions.AUDIENCE,
-                notBefore: now,
-                claims: identity.Claims,
-                expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
-                signingCredentials: new SigningCredentials(
-                    AuthOptions.GetSymmetricSecurityKey(),
-                    SecurityAlgorithms.HmacSha256));
-
-            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-            var response = new TokenDTO
+            try
             {
-                Access_token = encodedJwt,
-                Username = identity.Name,
-                Role = identity.FindFirst(ClaimTypes.Role)?.Value
-            };
+                var identity = await GetIdentity(loginDTO.Username, loginDTO.Password);
 
-            return response;
+                if (identity == null)
+                {
+                    return null;
+                }
+
+                var now = DateTime.UtcNow;
+
+                var jwt = new JwtSecurityToken(
+                    issuer: AuthOptions.ISSUER,
+                    audience: AuthOptions.AUDIENCE,
+                    notBefore: now,
+                    claims: identity.Claims,
+                    expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
+                    signingCredentials: new SigningCredentials(
+                        AuthOptions.GetSymmetricSecurityKey(),
+                        SecurityAlgorithms.HmacSha256));
+
+                var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+                var response = new TokenDTO
+                {
+                    Access_token = encodedJwt,
+                    Username = identity.Name,
+                    Role = identity.FindFirst(ClaimTypes.Role)?.Value
+                };
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Token service: {ex.Message}");
+                return null;
+            }
         }
         public async Task<RegisterResponseDTO?> Register([FromBody] RegisterDTO registerDto)
         {
