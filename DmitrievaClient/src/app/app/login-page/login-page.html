@@ -8,14 +8,22 @@
       Логин
       <input 
       formControlName="username"
-      class="input-text" type="text" placeholder="Введите логин">
+      class="input-text" type="text" placeholder="Введите логин"
+      [class.input-error]="isError">
     </label>
     <label class="title">
       Пароль
       <input
       formControlName="password"
-      class="input-text" type="password" placeholder="Введите пароль">
+      class="input-text" type="password" placeholder="Введите пароль"
+      [class.input-error]="isError">
     </label>
+
+    <!-- @if (isError) {
+        <div class="error-message">
+          <span>Неверный логин или пароль</span>
+        </div>
+    } -->
     <button class="btn" type="submit">Войти</button>
   </form>
   

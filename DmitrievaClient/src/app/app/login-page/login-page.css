@@ -44,10 +44,12 @@
   line-height: 21px;
   padding: 10px 12px;
   outline: none;
+  transition: all 0.3s ease;
 }
 
 .input-text:focus {
   border-color: #0b9df4;
+  box-shadow: 0 0 8px rgba(11, 157, 244, 0.3);
 }
 
 .btn {
@@ -78,3 +80,35 @@
 .btn:active {
   transform: scale(0.98);
 }
+
+
+/* ✅ Красная рамочка при ошибке */
+.input-text.input-error {
+  border-color: #ff5454;
+  background-color: rgba(255, 84, 84, 0.05);
+  box-shadow: 0 0 8px rgba(255, 84, 84, 0.2);
+}
+
+.input-text.input-error:focus {
+  border-color: #ff5454;
+  box-shadow: 0 0 12px rgba(255, 84, 84, 0.1);
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: rgba(255, 84, 84, 0.1);
+  border: 1px solid #ff5454;
+  border-radius: 4px;
+  color: #ff5454;
+  font-size: 13px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.error-message span:first-child {
+  font-size: 16px;
+}
+

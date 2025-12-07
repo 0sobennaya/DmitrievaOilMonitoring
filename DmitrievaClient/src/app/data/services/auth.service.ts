@@ -11,20 +11,40 @@ export class AuthService{
     cookieService = inject(CookieService)
     baseApiUrl = 'https://localhost:7232/api/Account/';
     token: string | null = null;
+    username: string | null = null;
+    role: string | null = null;
 
     get isAuth(){
         if (!this.token){
-            this.token = this.cookieService.get('token')
+            this.token = this.cookieService.get('token');
+            this.username = this.cookieService.get('username');
+            this.role = this.cookieService.get('role');
         }
         return !!this.token
     }
 
-    logIn(payload: {username: string, password: string}){
-        return this.http.post<TokenResponse>(`${this.baseApiUrl}token`, payload).pipe(
-            tap(val => {
-                this.token = val.access_token
-                this.cookieService.set('token',this.token)
-            })
-        );
+    logIn(payload: {username: string, password: string}) {
+    return this.http.post<TokenResponse>(`${this.baseApiUrl}token`, payload).pipe(
+        tap(val => {
+                   
+            const tokenData = val.value;
+            this.token = tokenData.access_token;
+            
+            this.cookieService.set('token', tokenData.access_token, { secure: false, sameSite: 'Lax' });
+            this.cookieService.set('username', tokenData.username, { secure: false, sameSite: 'Lax' });
+            this.cookieService.set('role', tokenData.role, { secure: false, sameSite: 'Lax' });
+            
+        })
+    );
+}
+
+    logOut(): void {
+        this.token = null;
+        this.username = null;
+        this.role = null;
+        
+        this.cookieService.delete('token');
+        this.cookieService.delete('username');
+        this.cookieService.delete('role');
     }
 }

@@ -13,24 +13,35 @@ import { Router } from '@angular/router';
 export class LoginPage {
   authService = inject(AuthService)
   router = inject(Router)
+  isError = false; 
   
   form = new FormGroup({
     username: new FormControl(null, Validators.required),
     password: new FormControl(null, Validators.required)
   })
-  onSubmit(event: Event){
-    if (this.form.valid) {
-      //@ts-ignore
-      this.authService.logIn(this.form.value)
-      .subscribe({
-        next: (data) =>{
-          this.router.navigate(['/pumps']);
-          console.log(data);
+  onSubmit(event: Event): void {  
+  this.isError = false;
+  
+  if (this.form.valid) {    
+    //@ts-ignore
+    this.authService.logIn(this.form.value).subscribe({
+      next: (data) => {
+        this.router.navigate(['/pumps']);
+      },
+      error: (error) => {        
+        this.isError = true;
+        this.form.patchValue({
+          password: null
+        });
+                
+        setTimeout(() => {
+          this.isError = false;
+        }, 4000);
       }
-    })
-    } else {
-      console.log('Ошибка авторизации - поля пустые');
-    }
+    });
+  } else {
+    console.log('Ошибка авторизации');
   }
+}
 
 }
