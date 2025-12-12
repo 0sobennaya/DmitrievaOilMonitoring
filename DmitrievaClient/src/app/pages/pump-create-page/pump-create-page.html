@@ -1,0 +1,205 @@
+<div class="create-container">
+  <h1>Создать новый насос</h1>
+
+  <form [formGroup]="pumpForm" class="pump-form">
+    <!-- Режим и давление -->
+    <div class="form-section">
+      <h2>Основные параметры</h2>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Режим</mat-label>
+        <mat-select formControlName="mode">
+          <mat-option [value]="0">Работает</mat-option>
+          <mat-option [value]="1">Остановлен</mat-option>
+          <mat-option [value]="2">Резерв</mat-option>
+          <mat-option [value]="3">Ремонт</mat-option>
+        </mat-select>
+        @if (getError('mode')) {
+          <span class="error-message">{{ getError('mode') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Давление на входе</mat-label>
+        <input
+          matInput
+          formControlName="pressureIn"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('pressureIn')?.invalid && pumpForm.get('pressureIn')?.touched"
+        />
+        @if (getError('pressureIn')) {
+          <span class="error-message">{{ getError('pressureIn') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Давление на выходе</mat-label>
+        <input
+          matInput
+          formControlName="pressureOut"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('pressureOut')?.invalid && pumpForm.get('pressureOut')?.touched"
+        />
+        @if (getError('pressureOut')) {
+          <span class="error-message">{{ getError('pressureOut') }}</span>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Температура -->
+    <div class="form-section">
+      <h2>Температура</h2>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Температура корпуса (°C)</mat-label>
+        <input
+          matInput
+          formControlName="temperatureBody"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('temperatureBody')?.invalid && pumpForm.get('temperatureBody')?.touched"
+        />
+        @if (getError('temperatureBody')) {
+          <span class="error-message">{{ getError('temperatureBody') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Температура подшипника (°C)</mat-label>
+        <input
+          matInput
+          formControlName="temperatureBearing"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('temperatureBearing')?.invalid && pumpForm.get('temperatureBearing')?.touched"
+        />
+        @if (getError('temperatureBearing')) {
+          <span class="error-message">{{ getError('temperatureBearing') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Температура масла (°C)</mat-label>
+        <input
+          matInput
+          formControlName="oilTemperature"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('oilTemperature')?.invalid && pumpForm.get('oilTemperature')?.touched"
+        />
+        @if (getError('oilTemperature')) {
+          <span class="error-message">{{ getError('oilTemperature') }}</span>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Вибрация и мощность -->
+    <div class="form-section">
+      <h2>Вибрация и мощность</h2>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Вибрация (мм/c)</mat-label>
+        <input
+          matInput
+          formControlName="vibration"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('vibration')?.invalid && pumpForm.get('vibration')?.touched"
+        />
+        @if (getError('vibration')) {
+          <span class="error-message">{{ getError('vibration') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Мощность (кВт)</mat-label>
+        <input
+          matInput
+          formControlName="power"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('power')?.invalid && pumpForm.get('power')?.touched"
+        />
+        @if (getError('power')) {
+          <span class="error-message">{{ getError('power') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Частота вращения вала (об/мин)</mat-label>
+        <input
+          matInput
+          formControlName="shaftRotationFrequency"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('shaftRotationFrequency')?.invalid && pumpForm.get('shaftRotationFrequency')?.touched"
+        />
+        @if (getError('shaftRotationFrequency')) {
+          <span class="error-message">{{ getError('shaftRotationFrequency') }}</span>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Масло -->
+    <div class="form-section">
+      <h2>Состояние масла</h2>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Уровень масла (%)</mat-label>
+        <input
+          matInput
+          formControlName="oilLevel"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('oilLevel')?.invalid && pumpForm.get('oilLevel')?.touched"
+        />
+        @if (getError('oilLevel')) {
+          <span class="error-message">{{ getError('oilLevel') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Давление масла (bar)</mat-label>
+        <input
+          matInput
+          formControlName="oilPressure"
+          type="number"
+          
+          [class.input-error]="pumpForm.get('oilPressure')?.invalid && pumpForm.get('oilPressure')?.touched"
+        />
+        @if (getError('oilPressure')) {
+          <span class="error-message">{{ getError('oilPressure') }}</span>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>ID масла *</mat-label>
+        <input
+          matInput
+          formControlName="oilId"
+          type="number"
+          [class.input-error]="pumpForm.get('oilId')?.invalid && pumpForm.get('oilId')?.touched"
+        />
+        @if (getError('oilId')) {
+          <span class="error-message">{{ getError('oilId') }}</span>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="form-actions">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="createPump()"
+        [disabled]="loading()"
+        type="button"
+      >
+        {{ loading() ? 'Создание...' : 'Создать насос' }}
+      </button>
+      <button mat-stroked-button (click)="cancel()" type="button">Отмена</button>
+    </div>
+  </form>
+</div>

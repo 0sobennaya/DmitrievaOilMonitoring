@@ -1,7 +1,0 @@
-.pump-card__wrapper {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 16px;
-  padding: 16px;
-}
-

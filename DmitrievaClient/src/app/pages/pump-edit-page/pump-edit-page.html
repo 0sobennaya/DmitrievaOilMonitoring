@@ -1,0 +1,60 @@
+<div class="pump-detail-container">
+  <!-- Кнопка "Назад" -->
+  <div class="header-buttons">
+    <button mat-button (click)="goBack()" class="back-btn">
+      ← Вернуться к списку насосов
+    </button>
+  </div>
+
+  @if (pump()) {
+    <div class="detail-wrapper">
+      <div class="card-container">
+        <app-pump-card 
+          [pump]="pump()!" 
+          [isEditing]="isEditing()"
+          (pumpChanged)="onPumpChanged($event)">
+        </app-pump-card>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="action-buttons">
+        @if (!isEditing()) {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="startEditing()"
+            class="edit-btn">
+            Редактировать
+          </button>
+          <!-- Кнопка удаления -->
+          <button 
+            mat-raised-button 
+            color="warn"
+            (click)="deletePump()"
+            [disabled]="loading()"
+            class="delete-btn">
+            {{ loading() ? 'Удаление...' : 'Удалить' }}
+          </button>
+        } @else {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="savePump()"
+            [disabled]="!isChanged() || loading()"
+            class="save-btn">
+            {{ loading() ? 'Сохраняю...' : 'Сохранить изменения' }}
+          </button>
+          <button 
+            mat-stroked-button 
+            (click)="cancelEditing()"
+            [disabled]="loading()"
+            class="cancel-btn">
+            Отмена
+          </button>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="loading">Загрузка...</p>
+  }
+</div>

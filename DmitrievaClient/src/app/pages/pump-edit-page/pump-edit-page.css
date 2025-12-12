@@ -1,0 +1,54 @@
+.pump-detail-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-buttons {
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  color: var(--color-primary);
+}
+
+.detail-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-container {
+  padding: 20px;
+  background: rgba(13, 33, 55, 0.5);
+  border-radius: 12px;
+  border: 1px solid #1f5fa8;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn,
+.delete.btn {
+  font-weight: 500;
+  width: 200px;
+}
+
+@media (max-width: 1024px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .edit-btn,
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}

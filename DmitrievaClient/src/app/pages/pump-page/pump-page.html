@@ -1,0 +1,159 @@
+<div class="pump-page">
+
+  <div class="pump-header">   
+    <button 
+      mat-raised-button 
+      class="create-btn" 
+      (click)="goToCreate()">
+      Создать насос
+    </button>
+    <div class="view-controls">
+      <button 
+        mat-icon-button 
+        [class.active]="viewMode() === 'cards'"
+        (click)="toggleViewMode('cards')"
+        matTooltip="Вид карточек">
+        <mat-icon>dashboard</mat-icon>
+      </button>
+      <button 
+        mat-icon-button 
+        [class.active]="viewMode() === 'table'"
+        (click)="toggleViewMode('table')"
+        matTooltip="Вид таблицы">
+        <mat-icon>table_chart</mat-icon>
+      </button>
+    </div>
+
+  </div>
+
+  <!--  ВИД КАРТОЧЕК -->
+  @if (viewMode() === 'cards') {
+    <div class="pump-card__wrapper">
+      @for (pump of pumps(); track pump.id) {
+        <app-pump-card [pump]="pump"></app-pump-card>
+      }
+      @if (pumps().length === 0) {
+        <p class="no-data">Нет насосов</p>
+      }
+    </div>
+  }
+
+  <!-- ВИД ТАБЛИЦЫ (Material Table) -->
+  @if (viewMode() === 'table') {
+    <div class="table-container">
+      <table mat-table [dataSource]="pumps()" class="pumps-table">
+        
+        <!-- ID Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let pump" class="cell-id">{{ pump.id }}</td>
+        </ng-container>
+
+        <!-- Mode Column -->
+        <ng-container matColumnDef="mode">
+          <th mat-header-cell *matHeaderCellDef>Режим</th>
+          <td mat-cell *matCellDef="let pump">
+            @if (pump.mode == 0) {
+              <span class="status-badge work">Работает</span>
+            } @else if (pump.mode == 1) {
+              <span class="status-badge stop">Остановлен</span>
+            } @else if (pump.mode == 2) {
+              <span class="status-badge reserve">Резерв</span>
+            } @else if (pump.mode == 3) {
+              <span class="status-badge repair">Ремонт</span>
+            }
+          </td>
+        </ng-container>
+
+        <!-- Pressure In Column -->
+        <ng-container matColumnDef="pressureIn">
+          <th mat-header-cell *matHeaderCellDef>Давл. вход</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.pressureIn }}</td>
+        </ng-container>
+
+        <!-- Pressure Out Column -->
+        <ng-container matColumnDef="pressureOut">
+          <th mat-header-cell *matHeaderCellDef>Давл. выход</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.pressureOut }}</td>
+        </ng-container>
+
+        <!-- Temperature Body Column -->
+        <ng-container matColumnDef="temperatureBody">
+          <th mat-header-cell *matHeaderCellDef>Темп. корпус</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.temperatureBody }}</td>
+        </ng-container>
+
+        <!-- Temperature Bearing Column -->
+        <ng-container matColumnDef="temperatureBearing">
+          <th mat-header-cell *matHeaderCellDef>Темп. подш.</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.temperatureBearing }}</td>
+        </ng-container>
+
+        <!-- Power Column -->
+        <ng-container matColumnDef="power">
+          <th mat-header-cell *matHeaderCellDef>Мощность</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.power }}</td>
+        </ng-container>
+
+        <!-- Shaft Rotation Column -->
+        <ng-container matColumnDef="shaftRotationFrequency">
+          <th mat-header-cell *matHeaderCellDef>Обороты</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.shaftRotationFrequency }}</td>
+        </ng-container>
+
+        <!-- Oil Level Column -->
+        <ng-container matColumnDef="oilLevel">
+          <th mat-header-cell *matHeaderCellDef>Уровень масла</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.oilLevel }}%</td>
+        </ng-container>
+
+        <!-- Oil Temperature Column -->
+        <ng-container matColumnDef="oilTemperature">
+          <th mat-header-cell *matHeaderCellDef>Темп. масла</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.oilTemperature }}</td>
+        </ng-container>
+
+        <!-- Oil Pressure Column -->
+        <ng-container matColumnDef="oilPressure">
+          <th mat-header-cell *matHeaderCellDef>Давл. масла</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.oilPressure }}</td>
+        </ng-container>
+
+        <!-- Vibration Column -->
+        <ng-container matColumnDef="vibration">
+          <th mat-header-cell *matHeaderCellDef>Вибрация</th>
+          <td mat-cell *matCellDef="let pump">{{ pump.vibration }}</td>
+        </ng-container>
+
+        <!-- Oil ID Column -->
+        <ng-container matColumnDef="oilId">
+          <th mat-header-cell *matHeaderCellDef>ID масла</th>
+  
+          <td mat-cell *matCellDef="let pump">
+            @if (pump.oilId && pump.oilId > 0) {
+            {{ pump.oilId }}
+          } @else {
+            <span>—</span>
+          }
+
+          </td>
+        </ng-container>
+
+        <!-- Header Row -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        
+        <!-- Data Row -->
+        <tr 
+          mat-row 
+          *matRowDef="let row; columns: displayedColumns;"
+          class="clickable-row"
+          (click)="goToEdit(row.id)">
+        </tr>
+      </table>
+
+      @if (pumps().length === 0) {
+        <p class="no-data">Нет насосов</p>
+      }
+    </div>
+  }
+</div>

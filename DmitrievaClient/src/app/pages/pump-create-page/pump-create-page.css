@@ -1,0 +1,84 @@
+.create-container {
+  max-width: 900px;
+  margin: 8px auto;
+  padding: 20px;
+  color: #ffffff;
+}
+
+h1 {
+  margin-bottom: 30px;
+  color: var(--color-text);
+}
+
+.pump-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background-color: #0d2137;
+  border-radius: 8px;
+  border: 1px solid #1f5fa8;
+}
+
+.form-section h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 0px;
+  margin-bottom: 8px;
+}
+
+button {
+  min-width: 150px;
+}
+.pump-form mat-form-field input {
+  color: white;
+}
+
+
+.pump-form mat-form-field mat-select {
+  color: white;
+}
+
+
+.pump-form mat-form-field input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+.error-message {
+  display: block;
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.input-error {
+  border-color:#ff4444 !important;
+}
+
+mat-form-field.ng-invalid.ng-touched {
+  color: #ff4444;
+}
+@media (max-width: 1024px) {
+  .create-container {
+    padding: 10px;
+  }
+
+  .form-section {
+    padding: 15px;
+  }
+}

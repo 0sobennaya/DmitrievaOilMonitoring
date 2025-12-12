@@ -22,3 +22,9 @@
 .mat-mdc-nav-list .mat-mdc-list-item {
     border-radius: 0%;
  }
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 110px;
+  }
+}
