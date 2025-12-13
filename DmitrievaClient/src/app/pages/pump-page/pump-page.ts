@@ -29,20 +29,20 @@ export class PumpPage {
   loading = signal(false);
   
   viewMode = signal<'cards' | 'table'>('cards');
-    displayedColumns: string[] = [
-    'id',
-    'mode',
-    'pressureIn',
-    'pressureOut',
-    'temperatureBody',
-    'temperatureBearing',
-    'power',
-    'shaftRotationFrequency',
-    'oilLevel',
-    'oilTemperature',
-    'oilPressure',
-    'vibration',
-    'oilId'
+  displayedColumns: string[] = [
+  'id',
+  'mode',
+  'pressureIn',
+  'pressureOut',
+  'temperatureBody',
+  'temperatureBearing',
+  'power',
+  'shaftRotationFrequency',
+  'oilLevel',
+  'oilTemperature',
+  'oilPressure',
+  'vibration',
+  'oilId'
   ];
 
   goToCreate() {

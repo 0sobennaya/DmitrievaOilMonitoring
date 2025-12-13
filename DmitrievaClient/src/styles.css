@@ -1,8 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
-
+:root{
+  --primary-color: #0d2137; 
+  --primary-color-light: #1a2f45;
+  --primary-color-dark: #0a1628;
+  --accent-blue-color: #0b9df4;
+  --white-color: #ffffff;
+  --border-color: #04406c;
+  --error-color: #ff5454;
+  --btn-hover-color: #d9eeff;
+  --gray-color: #666;
+  --gray-light-color: #999;
+}
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .mdc-list-item__primary-text {
-  color: #0B9DF4 !important;
+  color: var(--accent-blue-color) !important;
   text-transform: uppercase;
 }

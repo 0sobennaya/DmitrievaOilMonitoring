@@ -1,2 +1,109 @@
-<h1>Масла</h1>
-    <p>Здесь будет список и карточки масел.</p>
+<div class="oil-page">
+  <!-- Заголовок и кнопки -->
+  <div class="oil-header">
+    <button 
+      mat-raised-button 
+      class="create-btn" 
+      color="primary"
+      (click)="goToCreate()">
+      Создать масло
+    </button>
+
+    <!-- Переключатель вида -->
+    <div class="view-controls">
+      <button 
+        mat-icon-button 
+        [class.active]="viewMode() === 'cards'"
+        (click)="toggleViewMode('cards')"
+        matTooltip="Вид карточек">
+        <mat-icon>dashboard</mat-icon>
+      </button>
+      <button 
+        mat-icon-button 
+        [class.active]="viewMode() === 'table'"
+        (click)="toggleViewMode('table')"
+        matTooltip="Вид таблицы">
+        <mat-icon>table_chart</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ВИД КАРТОЧЕК -->
+  @if (viewMode() === 'cards') {
+    <div class="oil-card__wrapper">
+      @for (oil of oils(); track oil.id) {
+        <app-oil-card [oil]="oil"></app-oil-card>
+      }
+      @if (oils().length === 0) {
+        <p class="no-data">Нет масел</p>
+      }
+    </div>
+  }
+
+  <!--  ВИД ТАБЛИЦЫ -->
+  @if (viewMode() === 'table') {
+    <div class="table-container">
+      <table mat-table [dataSource]="oils()" class="oils-table">
+        
+        <!-- ID Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let oil" class="cell-id">{{ oil.id }}</td>
+        </ng-container>
+
+        <!-- tan Column -->
+        <ng-container matColumnDef="tan">
+          <th mat-header-cell *matHeaderCellDef>Кислотное число</th>
+          <td mat-cell *matCellDef="let oil">
+            {{ oil.tan }}
+          </td>
+        </ng-container>
+
+        <!-- Viscosity Column -->
+        <ng-container matColumnDef="viscosity">
+          <th mat-header-cell *matHeaderCellDef>Вязкость (cSt)</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.viscosity }}</td>
+        </ng-container>
+
+        <!-- Water Content Column -->
+        <ng-container matColumnDef="waterContent">
+          <th mat-header-cell *matHeaderCellDef>Содержание воды (%)</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.waterContent }}</td>
+        </ng-container>
+
+        <!-- Installation Date Column -->
+        <ng-container matColumnDef="installationDate">
+          <th mat-header-cell *matHeaderCellDef>Дата заливки</th>
+          <td mat-cell *matCellDef="let oil">{{ formatDate(oil.installationDate )}}</td>
+        </ng-container>
+
+        <!-- Operating Hours Column -->
+        <ng-container matColumnDef="operatingHours">
+          <th mat-header-cell *matHeaderCellDef>Отработано часов</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.operatingHours }}</td>
+        </ng-container>
+
+        <!-- Operating Cycles Column -->
+        <ng-container matColumnDef="startStopCycles">
+          <th mat-header-cell *matHeaderCellDef>Отработано циклов</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.startStopCycles }}</td>
+        </ng-container>
+
+        <!-- Header Row -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        
+        <!-- Data Row - кликабельная -->
+        <tr 
+          mat-row 
+          *matRowDef="let row; columns: displayedColumns;"
+          class="clickable-row"
+          (click)="goToEdit(row.id)">
+        </tr>
+      </table>
+
+      @if (oils().length === 0) {
+        <p class="no-data">Нет масел</p>
+      }
+    </div>
+  }
+</div>
