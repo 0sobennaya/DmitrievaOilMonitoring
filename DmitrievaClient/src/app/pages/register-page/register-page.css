@@ -103,20 +103,20 @@
 .error-message span:first-child {
   font-size: 16px;
 }
-.register-link {
+.login-link {
   text-align: center;
   margin-top: 20px;
   font-size: 14px;
   color: var(--white-color);
 }
 
-.register-link a {
+.login-link a {
   color: var(--accent-blue-color);
   text-decoration: none;
   font-weight: 500;
 }
 
-.register-link a:hover {
+.login-link a:hover {
   text-decoration: underline;
   cursor: pointer;
 }

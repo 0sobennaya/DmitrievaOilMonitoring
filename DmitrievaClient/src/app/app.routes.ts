@@ -8,6 +8,7 @@ import { PumpEditPage } from './pages/pump-edit-page/pump-edit-page';
 import { PumpCreatePage } from './pages/pump-create-page/pump-create-page';
 import { OilCreatePage } from './pages/oil-create-page/oil-create-page';
 import { OilEditPage } from './pages/oil-edit-page/oil-edit-page';
+import { RegisterPage } from './pages/register-page/register-page';
 
 export const routes: Routes = [
   { 
@@ -42,5 +43,6 @@ export const routes: Routes = [
       },
     ]
   },
-  { path: 'login', component: LoginPage }
+  { path: 'login', component: LoginPage },
+  { path: 'register', component: RegisterPage }
 ];

@@ -15,13 +15,20 @@ export class Header{
   authService = inject(AuthService);
   cookieService = inject(CookieService);
   router = inject(Router);
+  
+  constructor() {
+    this.authService.isAuth;  
+  }
 
   get username(): string {
-      return this.cookieService.get('username') || 'Пользователь';
+    if (!this.authService.username) {
+      this.authService.username = this.authService.cookieService?.get('username') || null;
+    }
+    return this.authService.username || 'Пользователь';
   }
 
   get role(): string {
-      return this.cookieService.get('role') || 'User';
+    return this.authService.getRole() || 'User';
   }
 
   onLogout(): void {

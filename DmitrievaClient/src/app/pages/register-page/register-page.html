@@ -1,0 +1,58 @@
+<div class="host">
+  <form class="login-form"
+   [formGroup]="form"
+   (ngSubmit)="onSubmit($event)"
+   >
+    <h1 class="h1">Регистрация</h1>
+    
+    <label class="title">
+      Логин
+      <input 
+      formControlName="login"
+      class="input-text" type="text" placeholder="Введите логин"
+      [class.input-error]="isError">
+    </label>
+
+    <label class="title">
+      Пароль
+      <input
+      formControlName="password"
+      class="input-text" type="password" placeholder="Введите пароль"
+      [class.input-error]="isError">
+    </label>
+
+    <label class="title">
+      Полное имя
+      <input 
+      formControlName="fullName"
+      class="input-text" type="text" placeholder="Введите имя"
+      [class.input-error]="isError">
+    </label>
+
+    <label class="title">
+      Роль
+      <select 
+      formControlName="role"
+      class="input-text"
+      [class.input-error]="isError">
+        <option value="Technologist">Технолог</option>
+        <option value="Engineer">Инженер</option>
+        <option value="Laborant">Лаборант</option>
+      </select>
+    </label>
+
+    @if (isError) {
+        <div class="error-message">
+          <span>{{ errorMessage }}</span>
+        </div>
+    }
+    
+    <button class="btn" type="submit">Зарегистрироваться</button>
+    
+    <p class="login-link">
+      Уже есть аккаунт? <a routerLink="/login">Войти</a>
+    </p>
+  </form>
+  
+  <img src="assets/logo_big.svg" alt="Logo" class="logo">
+</div>

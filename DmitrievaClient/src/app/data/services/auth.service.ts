@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { tap } from "rxjs";
+import { catchError, tap, throwError } from "rxjs";
 import { TokenResponse } from "../interfaces/auth.interface";
 import {CookieService} from "ngx-cookie-service"
 @Injectable({
@@ -23,11 +23,15 @@ export class AuthService{
         return !!this.token
     }
     getRole(): string | null {
-        if (!this.role) {
-            this.role = this.cookieService.get('role') || null;
+    if (!this.role) {
+        const roleFromCookie = this.cookieService.get('role');
+        if (roleFromCookie) {
+        this.role = roleFromCookie;
         }
-        return this.role;
     }
+    return this.role || null;
+    }
+
 
     hasRole(roles: string | string[]): boolean {
     const current = this.getRole();
@@ -43,6 +47,8 @@ export class AuthService{
                    
             const tokenData = val.value;
             this.token = tokenData.access_token;
+            this.username = tokenData.username;  
+            this.role = tokenData.role;
             
             this.cookieService.set('token', tokenData.access_token, { secure: false, sameSite: 'Lax' });
             this.cookieService.set('username', tokenData.username, { secure: false, sameSite: 'Lax' });
@@ -50,7 +56,7 @@ export class AuthService{
             
         })
     );
-}
+    }
 
     logOut(): void {
         this.token = null;
@@ -61,4 +67,23 @@ export class AuthService{
         this.cookieService.delete('username');
         this.cookieService.delete('role');
     }
+    
+
+
+    register(payload: {login: string, password: string, fullName: string, role: UserRole}) {
+  return this.http.post<{login: string, role: UserRole, fullName: string}>(`${this.baseApiUrl}register`, payload).pipe(
+    tap(val => {
+      console.log('Регистрация успешна:', val);
+    }),
+    catchError(error => {
+      console.error('Ошибка регистрации:', error);
+      return throwError(() => error);
+    })
+  );
 }
+}
+export enum UserRole {
+        Technologist = 'Technologist',
+        Laborant = 'Laborant',
+        Engineer = 'Engineer'
+    }

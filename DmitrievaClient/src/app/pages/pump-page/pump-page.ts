@@ -30,6 +30,9 @@ export class PumpPage {
   private PumpsService = inject(PumpsService);
 
   pumps = signal<PumpInterface[]>([]);
+  filteredPumps = signal<PumpInterface[]>([]); 
+  searchId = signal<string>('');    
+  selectedMode = signal<number | null>(null); 
   loading = signal(false);
   
   viewMode = signal<'cards' | 'table'>('cards');
@@ -56,22 +59,58 @@ export class PumpPage {
     this.router.navigate(['/pump/edit', pumpId]);
   }
 
-  
-
   loadPumps() {
     this.loading.set(true);
     this.PumpsService.getPumps().subscribe({
       next: (value: PumpInterface[]) => {
         this.pumps.set(value);
+        this.filterBySearch();
         this.loading.set(false);
-        console.log('✅ Насосы загружены:', value);
+        console.log('Насосы загружены:', value);
       },
       error: (err) => {
-        console.error('❌ Ошибка при получении данных:', err);
+        console.error('Ошибка при получении данных:', err);
         this.loading.set(false);
       }
     });
+    
   }
+  onSearchChange(id: string) {
+    this.searchId.set(id.trim());
+    this.filterBySearch();
+  }
+  onModeChange(value: string) {
+  if (value === '') {
+    this.selectedMode.set(null);
+  } else {
+    this.selectedMode.set(Number(value));
+  }
+  this.filterBySearch();
+}
+
+
+ filterBySearch() {
+  const id = this.searchId();
+  const mode = this.selectedMode();
+
+  const filtered = this.pumps().filter(p => {
+    // Проверяем ID, если задан
+    if (id && !p.id?.toString().includes(id)) {
+      return false;
+    }
+    
+    // Проверяем режим, если задан
+    if (mode !== null && p.mode !== mode) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  this.filteredPumps.set(filtered);
+}
+
+
 
   // Метод для переключения вида
   toggleViewMode(mode: 'cards' | 'table') {

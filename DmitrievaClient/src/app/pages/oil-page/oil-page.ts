@@ -15,7 +15,6 @@ import { AuthService } from '../../data/services/auth.service';
   imports: [
     OilCard,
     CommonModule,
-    RouterLink,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -28,6 +27,9 @@ export class OilPage {
   private router = inject(Router);
 
   oils = signal<OilInterface[]>([]);
+  filteredOils = signal<OilInterface[]>([]);
+  searchId = signal<string>(''); 
+
   constructor(private oilsService: OilsService,public auth: AuthService ) {
   this.oilsService.getOils().subscribe({
     next: (oils: OilInterface[]) => this.oils.set(oils)
@@ -56,7 +58,8 @@ export class OilPage {
     this.loading.set(true);
     this.oilsService.getOils().subscribe({
       next: (data: OilInterface[]) => {
-        this.oils.set(data);
+        this.oils.set(data);        
+        this.filterBySearch();
         this.loading.set(false);
         console.log('Масла загружены:', data);
       },
@@ -65,6 +68,20 @@ export class OilPage {
         this.loading.set(false);
       }
     });
+  }
+  onSearchChange(id: string) {
+    this.searchId.set(id.trim());
+    this.filterBySearch();
+  }
+
+  filterBySearch() {
+    const id = this.searchId();
+    if (!id) {
+      this.filteredOils.set(this.oils());
+      return;
+    }
+    const filtered = this.oils().filter(o => o.id?.toString().includes(id));
+    this.filteredOils.set(filtered);
   }
   goToCreate() {
     this.router.navigate(['/oils/create']);

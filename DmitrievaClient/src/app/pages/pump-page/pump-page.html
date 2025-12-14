@@ -1,5 +1,5 @@
 <div class="pump-page">
-
+  
   <div class="header-actions">
   @if (!auth.hasRole('Laborant')) {
     <button 
@@ -9,6 +9,24 @@
       Создать насос
     </button>
   }
+  <div  class="search-line">
+  <input class="search-input"
+    type="text"
+    placeholder="Поиск по ID насоса"
+    (input)="onSearchChange($event.target.value)">
+  </div>
+   <select class="mode-select"
+  #modeSelect
+  (change)="onModeChange(modeSelect.value)"
+  style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+  <option value="">Все режимы</option>
+  <option value="0">Работает</option>
+  <option value="1">Остановлен</option>
+  <option value="2">Резерв</option>
+  <option value="3">Ремонт</option>
+</select>
+
+
 
   <div class="view-controls">
     <button 
@@ -32,7 +50,7 @@
   <!--  ВИД КАРТОЧЕК -->
   @if (viewMode() === 'cards') {
     <div class="pump-card__wrapper">
-      @for (pump of pumps(); track pump.id) {
+      @for (pump of filteredPumps(); track pump.id) {
         <app-pump-card [pump]="pump"></app-pump-card>
       }
       @if (pumps().length === 0) {
@@ -44,7 +62,7 @@
   <!-- ВИД ТАБЛИЦЫ (Material Table) -->
   @if (viewMode() === 'table') {
     <div class="table-container">
-      <table mat-table [dataSource]="pumps()" class="pumps-table">
+      <table mat-table [dataSource]="filteredPumps()" class="pumps-table">
         
         <!-- ID Column -->
         <ng-container matColumnDef="id">

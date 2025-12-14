@@ -1,12 +1,25 @@
 .oil-page {
   padding: 20px;
 }
+.search-line{
+  margin-bottom: 0;
+}
+.search-input{
+  width: 275px;
+  padding: 8px; 
+  border-radius: 8px; 
+  border: 1px solid var(--border-color);
+  background: var(--primary-color);
+  color: var(--white-color);
+  height: 22px;
+}
 .header-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
+  align-content: center
 }
 
 .view-controls {
@@ -16,11 +29,11 @@
   background: rgba(255, 255, 255, 0.06);
 }
 .view-controls button {
-  color: #fff;
+  color: var(--white-color)
 }
 .view-controls button.active {
-  background: #1e88e5;
-  color: #fff;
+  background: var(--accent-blue-color);
+  color: var(--white-color);
 }
 .create-btn {
   background: var(--white-color);

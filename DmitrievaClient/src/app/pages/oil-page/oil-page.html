@@ -1,4 +1,6 @@
 <div class="oil-page">
+
+
   <div class="header-actions">
   @if (!auth.hasRole('Engineer')) {
     <button 
@@ -8,6 +10,12 @@
       Создать масло
     </button>
   }
+  <div  class="search-line">
+  <input class="search-input"
+    type="text"
+    placeholder="Поиск по ID масла"
+    (input)="onSearchChange($event.target.value)">
+  </div>
 
   <div class="view-controls">
     <button 
