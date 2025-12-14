@@ -175,17 +175,20 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>ID масла *</mat-label>
-        <input
-          matInput
-          formControlName="oilId"
-          type="number"
-          [class.input-error]="pumpForm.get('oilId')?.invalid && pumpForm.get('oilId')?.touched"
-        />
-        @if (getError('oilId')) {
-          <span class="error-message">{{ getError('oilId') }}</span>
+      <mat-label>Масло</mat-label>
+      <mat-select formControlName="oilId">
+        <mat-option [value]="null">Нет масла</mat-option>
+        @for (oil of oils; track oil.id) {
+          <mat-option [value]="oil.id">
+            Масло №{{ oil.id }}
+          </mat-option>
         }
-      </mat-form-field>
+      </mat-select>
+      @if (getError('oilId')) {
+        <span class="error-message">{{ getError('oilId') }}</span>
+      }
+    </mat-form-field>
+
     </div>
 
     <!-- Кнопки -->

@@ -1,7 +1,8 @@
 @if (oil) {
   <form [formGroup]="oilForm">
-    <a [routerLink]="isEditing ? null : ['/oil/edit', oil.id]" 
-       [style.cursor]="isEditing ? 'default' : 'pointer'"
+    <a [routerLink]="auth.hasRole('Engineer')  ? null : ['/oil/edit', oil.id]" 
+       [style.pointer-events]="auth.hasRole('Engineer') ? 'none' : 'auto'"
+       [style.cursor]="auth.hasRole('Engineer')? 'default' : 'pointer'"
        class="oil-card-link">
       <mat-card class="app-oil-card">
         <!-- Заголовок карточки -->

@@ -6,6 +6,7 @@ import { PumpsService } from '../../data/services/pumps';
 import { PumpInterface } from '../../data/interfaces/pumps.interface';
 import { PumpCard } from '../pump-page/pump-card/pump-card';
 import { MatDialog } from '@angular/material/dialog';
+import { AuthService } from '../../data/services/auth.service';
 
 @Component({
   selector: 'app-pump-edit-page',
@@ -15,6 +16,8 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrl: './pump-edit-page.css',
 })
 export class PumpEditPage implements OnInit {
+  constructor(public auth: AuthService) {}
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private pumpsService = inject(PumpsService);

@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
+import { AuthService } from '../../data/services/auth.service';
 @Component({
   selector: 'app-pump-page',
   imports: [
@@ -22,6 +23,9 @@ import { MatTableModule } from '@angular/material/table';
   styleUrl: './pump-page.css',
 })
 export class PumpPage {
+  constructor(public auth: AuthService) {
+    this.loadPumps();
+  }
   private router = inject(Router);
   private PumpsService = inject(PumpsService);
 
@@ -52,9 +56,7 @@ export class PumpPage {
     this.router.navigate(['/pump/edit', pumpId]);
   }
 
-  constructor() {
-    this.loadPumps();
-  }
+  
 
   loadPumps() {
     this.loading.set(true);
@@ -75,4 +77,5 @@ export class PumpPage {
   toggleViewMode(mode: 'cards' | 'table') {
     this.viewMode.set(mode);
   }
+  
 }

@@ -1,8 +1,9 @@
 @if (pump) {
   <form [formGroup]="pumpForm">
-    <a [routerLink]="isEditing ? null : ['/pump/edit', pump.id]" 
-       [style.cursor]="isEditing ? 'default' : 'pointer'"
-       class="pump-card-link">
+    <a  [routerLink]="auth.hasRole('Laborant') ? null : ['/pump/edit', pump.id]"
+        [style.pointer-events]="auth.hasRole('Laborant') ? 'none' : 'auto'"
+        [style.cursor]="auth.hasRole('Laborant') ? 'default' : 'pointer'"
+        class="pump-card-link">
       <mat-card class="app-pump-card">
         <!-- Шапка карточки -->
         <div class="card-header">
@@ -37,7 +38,7 @@
               class="card-status-select"
               (click)="$event.stopPropagation()"
               (change)="updatePump()">
-              <option [ngValue]="null">Нет масла</option>
+              <option [value]="null">Нет масла</option>
               @for (oil of oils(); track oil.id) {
                 <option [value]="oil.id">
                   Масло №{{ oil.id }}

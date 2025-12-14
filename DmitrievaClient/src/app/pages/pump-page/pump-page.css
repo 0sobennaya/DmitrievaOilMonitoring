@@ -11,6 +11,27 @@
   margin-bottom: 30px;
   gap: 16px;
 }
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.view-controls {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.view-controls button {
+  color: #fff;
+}
+.view-controls button.active {
+  background: #1e88e5;
+  color: #fff;
+}
 
 .create-btn {
   background: var(--white-color);

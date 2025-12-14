@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { OilsService } from '../../data/services/oils';
 import { OilInterface } from '../../data/interfaces/oils.interface';
+import { AuthService } from '../../data/services/auth.service';
 
 @Component({
   selector: 'app-oil-page',
@@ -27,7 +28,7 @@ export class OilPage {
   private router = inject(Router);
 
   oils = signal<OilInterface[]>([]);
-  constructor(private oilsService: OilsService) {
+  constructor(private oilsService: OilsService,public auth: AuthService ) {
   this.oilsService.getOils().subscribe({
     next: (oils: OilInterface[]) => this.oils.set(oils)
   });

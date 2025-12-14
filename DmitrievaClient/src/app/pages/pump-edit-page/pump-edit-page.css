@@ -39,6 +39,18 @@
   font-weight: 500;
   width: 200px;
 }
+/* Chrome, Safari, Edge, Opera */
+input[matinput]::-webkit-outer-spin-button,
+input[matinput]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[matinput][type=number] {
+  -moz-appearance: textfield;
+}
+
 
 @media (max-width: 1024px) {
   .action-buttons {

@@ -22,6 +22,20 @@ export class AuthService{
         }
         return !!this.token
     }
+    getRole(): string | null {
+        if (!this.role) {
+            this.role = this.cookieService.get('role') || null;
+        }
+        return this.role;
+    }
+
+    hasRole(roles: string | string[]): boolean {
+    const current = this.getRole();
+    if (!current) return false;
+    const list = Array.isArray(roles) ? roles : [roles];
+    return list.includes(current);
+    }
+
 
     logIn(payload: {username: string, password: string}) {
     return this.http.post<TokenResponse>(`${this.baseApiUrl}token`, payload).pipe(

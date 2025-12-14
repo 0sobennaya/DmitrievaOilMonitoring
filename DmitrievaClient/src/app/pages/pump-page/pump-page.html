@@ -1,30 +1,33 @@
 <div class="pump-page">
 
-  <div class="pump-header">   
+  <div class="header-actions">
+  @if (!auth.hasRole('Laborant')) {
     <button 
       mat-raised-button 
       class="create-btn" 
       (click)="goToCreate()">
       Создать насос
     </button>
-    <div class="view-controls">
-      <button 
-        mat-icon-button 
-        [class.active]="viewMode() === 'cards'"
-        (click)="toggleViewMode('cards')"
-        matTooltip="Вид карточек">
-        <mat-icon>dashboard</mat-icon>
-      </button>
-      <button 
-        mat-icon-button 
-        [class.active]="viewMode() === 'table'"
-        (click)="toggleViewMode('table')"
-        matTooltip="Вид таблицы">
-        <mat-icon>table_chart</mat-icon>
-      </button>
-    </div>
+  }
 
+  <div class="view-controls">
+    <button 
+      mat-icon-button 
+      [class.active]="viewMode() === 'cards'"
+      (click)="toggleViewMode('cards')"
+      matTooltip="Вид карточек">
+      <mat-icon>dashboard</mat-icon>
+    </button>
+    <button 
+      mat-icon-button 
+      [class.active]="viewMode() === 'table'"
+      (click)="toggleViewMode('table')"
+      matTooltip="Вид таблицы">
+      <mat-icon>table_chart</mat-icon>
+    </button>
   </div>
+</div>
+
 
   <!--  ВИД КАРТОЧЕК -->
   @if (viewMode() === 'cards') {
@@ -143,12 +146,13 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         
         <!-- Data Row -->
-        <tr 
-          mat-row 
-          *matRowDef="let row; columns: displayedColumns;"
-          class="clickable-row"
-          (click)="goToEdit(row.id)">
-        </tr>
+        <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns;"
+        class="clickable-row"
+        (click)="!auth.hasRole('Laborant') && goToEdit(row.id)"
+        [style.cursor]="auth.hasRole('Laborant') ? 'default' : 'pointer'">
+      </tr>
       </table>
 
       @if (pumps().length === 0) {

@@ -1,20 +1,27 @@
 .oil-page {
   padding: 20px;
 }
-
-.oil-header {
+.header-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 30px;
   gap: 16px;
+  margin-bottom: 16px;
 }
 
-.oil-header h1 {
-  margin: 0;
-  display: none;
+.view-controls {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
 }
-
+.view-controls button {
+  color: #fff;
+}
+.view-controls button.active {
+  background: #1e88e5;
+  color: #fff;
+}
 .create-btn {
   background: var(--white-color);
   border-radius: 8px;

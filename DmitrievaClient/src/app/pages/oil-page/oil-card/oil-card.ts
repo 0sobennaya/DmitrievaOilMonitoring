@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatCard } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { OilInterface, OilResponse, OilUpdateRequest } from '../../../data/interfaces/oils.interface';
+import { AuthService } from '../../../data/services/auth.service';
 
 @Component({
   selector: 'app-oil-card',
@@ -18,7 +19,7 @@ export class OilCard {
 
   oilForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, public auth: AuthService) {}
    
   ngOnInit() {
     this.initForm();

@@ -1,28 +1,31 @@
 <div class="oil-page">
-  <div class="oil-header">
+  <div class="header-actions">
+  @if (!auth.hasRole('Engineer')) {
     <button 
       mat-raised-button 
       class="create-btn" 
       (click)="goToCreate()">
       Создать масло
     </button>
-    <div class="view-controls">
-      <button 
-        mat-icon-button 
-        [class.active]="viewMode() === 'cards'"
-        (click)="toggleViewMode('cards')"
-        matTooltip="Вид карточек">
-        <mat-icon>dashboard</mat-icon>
-      </button>
-      <button 
-        mat-icon-button 
-        [class.active]="viewMode() === 'table'"
-        (click)="toggleViewMode('table')"
-        matTooltip="Вид таблицы">
-        <mat-icon>table_chart</mat-icon>
-      </button>
-    </div>
+  }
+
+  <div class="view-controls">
+    <button 
+      mat-icon-button 
+      [class.active]="viewMode() === 'cards'"
+      (click)="toggleViewMode('cards')"
+      matTooltip="Вид карточек">
+      <mat-icon>dashboard</mat-icon>
+    </button>
+    <button 
+      mat-icon-button 
+      [class.active]="viewMode() === 'table'"
+      (click)="toggleViewMode('table')"
+      matTooltip="Вид таблицы">
+      <mat-icon>table_chart</mat-icon>
+    </button>
   </div>
+</div>
 
   @if (viewMode() === 'cards') {
     <div class="oil-card__wrapper">
@@ -120,8 +123,9 @@
           mat-row 
           *matRowDef="let row; columns: displayedColumns;"
           class="clickable-row"
-          (click)="goToEdit(row.id)">
-        </tr>
+          (click)="!auth.hasRole('Engineer') && goToEdit(row.id)"
+          [style.cursor]="auth.hasRole('Engineer') ? 'default' : 'pointer'">
+      </tr>
       </table>
 
       @if (oils().length === 0) {

@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { OilsService } from '../../data/services/oils';
+import { OilInterface } from '../../data/interfaces/oils.interface';
 
 @Component({
   selector: 'app-pump-create-page',
@@ -26,13 +28,27 @@ export class PumpCreatePage implements OnInit {
   private router = inject(Router);
   private pumpsService = inject(PumpsService);
   private fb = inject(FormBuilder);
+  private oilsService = inject(OilsService); 
   
   loading = signal(false);
   pumpForm!: FormGroup;
+  oils: OilInterface[] = [];             
 
   ngOnInit() {
     this.initForm();
+    this.loadOils();                     
     console.log('📝 Страница создания насоса загружена');
+  }
+  loadOils() {
+    this.oilsService.getOils().subscribe({
+      next: (response: any) => {
+        this.oils = response as OilInterface[];
+      },
+      error: err => {
+        console.error('Ошибка загрузки масел', err);
+        this.oils = [];
+      }
+    });
   }
 
   initForm() {
@@ -48,7 +64,7 @@ export class PumpCreatePage implements OnInit {
       oilTemperature: [0, [Validators.required, Validators.min(0), Validators.max(150)]],
       oilPressure: [0, [Validators.required, Validators.min(0), Validators.max(500)]],
       vibration: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
-      oilId: [null],
+      oilId: [null, Validators.required],
     });
   }
 

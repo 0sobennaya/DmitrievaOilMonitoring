@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { OilsService } from '../../../data/services/oils';
 import { signal } from '@angular/core';
+import { AuthService } from '../../../data/services/auth.service';
 
 @Component({
   selector: 'app-pump-card',
@@ -39,7 +40,8 @@ export class PumpCard implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private oilsService: OilsService
+    private oilsService: OilsService,
+    public auth: AuthService
   ) {}
    
   ngOnInit() {
