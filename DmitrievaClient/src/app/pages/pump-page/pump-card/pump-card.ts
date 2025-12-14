@@ -3,7 +3,7 @@ import { MatCard } from '@angular/material/card';
 import { PumpInterface } from '../../../data/interfaces/pumps.interface';
 import { OilInterface } from '../../../data/interfaces/oils.interface';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router} from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,7 +18,6 @@ import { AuthService } from '../../../data/services/auth.service';
   imports: [
     MatCard, 
     CommonModule, 
-    RouterLink, 
     ReactiveFormsModule,
     MatOptionModule,
     MatFormFieldModule,
@@ -33,6 +32,7 @@ export class PumpCard implements OnInit {
   @Output() pumpChanged = new EventEmitter<PumpInterface>(); // эмитит изменения
 
   pumpForm!: FormGroup;
+  private router = inject(Router); 
 
   // Сигналы для масел
   oils = signal<OilInterface[]>([]);
@@ -56,22 +56,28 @@ export class PumpCard implements OnInit {
   }
 
   loadOils() {
-    this.loadingOils.set(true);
-    this.oilsService.getOils().subscribe({
-      next: (response: any) => {
-        console.log('Загруженные масла:', response);
-        // Преобразуем ответ в массив OilInterface
-        const oilsArray = Array.isArray(response) ? response : (response.data || []);
-        this.oils.set(oilsArray as OilInterface[]);
-        this.loadingOils.set(false);
-      },
-      error: (err) => {
-        console.error('Ошибка загрузки масел:', err);
-        this.oils.set([]);
-        this.loadingOils.set(false);
-      },
-    });
-  }
+  this.loadingOils.set(true);
+  this.oilsService.getOils().subscribe({
+    next: (response: any) => {
+      console.log('Загруженные масла:', response);
+      const oilsArray = Array.isArray(response) ? response : (response.data || []);
+      
+      // Фильтруем масла: только те, у которых нет насоса, или это текущее масло
+      const filteredOils = (oilsArray as OilInterface[]).filter(oil =>
+        !oil.pumpUsage?.pumpId || oil.pumpUsage.pumpId === this.pump?.id
+      );
+      
+      this.oils.set(filteredOils);
+      this.loadingOils.set(false);
+    },
+    error: (err) => {
+      console.error('Ошибка загрузки масел:', err);
+      this.oils.set([]);
+      this.loadingOils.set(false);
+    },
+  });
+}
+
 
   initForm() {
     this.pumpForm = this.fb.group({
@@ -115,5 +121,8 @@ export class PumpCard implements OnInit {
   getOilInfo(oilId: number | undefined): OilInterface | undefined {
     if (!oilId) return undefined;
     return this.oils().find(oil => oil.id === oilId);
+  }
+  goToEdit() {
+    this.router.navigate(['/pump/edit', this.pump.id]);
   }
 }

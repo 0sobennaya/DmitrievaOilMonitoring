@@ -14,8 +14,8 @@ namespace DmitrievaOilMonitoringApi.Data
         {
             modelBuilder.Entity<Pump>()
                 .HasOne(p => p.Oil)
-                .WithMany()
-                .HasForeignKey(p => p.OilId)
+                .WithOne()
+                .HasForeignKey<Pump>(p => p.OilId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Person>()

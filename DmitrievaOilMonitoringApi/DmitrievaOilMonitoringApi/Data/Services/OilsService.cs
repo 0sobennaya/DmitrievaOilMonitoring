@@ -159,7 +159,6 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 {
                     Id = oil.Id,
                     Wear = oil.GetWear(temperature),
-                    Status = status,
                     OperatingHours = oil.OperatingHours
                 };
 
@@ -178,21 +177,27 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 let temperature = pump?.OilTemperature ?? 0
                 select new
                 {
+                    OilId = oil.Id,  
                     Status = oil.GetOilStatus(temperature),
                     Wear = oil.GetWear(temperature),
                     Contamination = oil.GetContamination(temperature)
                 };
 
-            int totalOils = stats.Count();
+            var groupedStats = stats
+                .GroupBy(s => s.OilId)
+                .Select(g => g.First()) 
+                .ToList();
+
+            int totalOils = groupedStats.Count();
             if (totalOils == 0)
             {
                 return new StatisticsDTO();
             }
 
-            int normalOils = stats.Count(s => s.Status == "Нормальное");
-            int warningOils = stats.Count(s => s.Status != "Нормальное");
-            double avgWear = stats.Average(s => s.Wear);
-            double avgContamination = stats.Average(s => s.Contamination);
+            int normalOils = groupedStats.Count(s => s.Status == "Нормальное");
+            int warningOils = groupedStats.Count(s => s.Status != "Нормальное");
+            double avgWear = groupedStats.Average(s => s.Wear);
+            double avgContamination = groupedStats.Average(s => s.Contamination);
 
             return new StatisticsDTO
             {

@@ -1,9 +1,9 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCard } from '@angular/material/card';
-import { RouterLink } from '@angular/router';
-import { OilInterface, OilResponse, OilUpdateRequest } from '../../../data/interfaces/oils.interface';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { OilInterface, OilUpdateRequest } from '../../../data/interfaces/oils.interface';
 import { AuthService } from '../../../data/services/auth.service';
 
 @Component({
@@ -12,23 +12,22 @@ import { AuthService } from '../../../data/services/auth.service';
   templateUrl: './oil-card.html',
   styleUrl: './oil-card.css',
 })
-export class OilCard {
+export class OilCard implements OnInit {
   @Input() oil!: OilInterface;
   @Input() isEditing = false;
   @Output() oilChanged = new EventEmitter<OilUpdateRequest>();
 
   oilForm!: FormGroup;
+  private formInitialized = false;
+  private router = inject(Router); 
 
   constructor(private fb: FormBuilder, public auth: AuthService) {}
-   
+
   ngOnInit() {
     this.initForm();
+    this.formInitialized = true;
   }
-  ngOnChanges(changes: SimpleChanges) {
-    if ((changes['oil'] || changes['isEditing']) && this.oil) {
-      this.initForm();
-    }
-  }
+
   initForm() {
     this.oilForm = this.fb.group({
       id: [this.oil?.id],
@@ -40,14 +39,14 @@ export class OilCard {
       startStopCycles: [this.oil?.startStopCycles, [Validators.required, Validators.min(0)]]
     });
   }
+
   updateOil() {
     if (this.oilForm.valid) {
       const updatedOil: OilUpdateRequest = this.oilForm.value;
       this.oilChanged.emit(updatedOil);
-    } else {
-      console.warn('Форма невалидна!');
     }
   }
+
   getError(fieldName: string): string | null {
     const control = this.oilForm.get(fieldName);
     if (control?.invalid && control?.touched) {
@@ -57,6 +56,7 @@ export class OilCard {
     }
     return null;
   }
+
   getDaysFromInstallation(): number {
     if (!this.oil?.installationDate) return 0;
     const installationDate = new Date(this.oil.installationDate);
@@ -65,6 +65,7 @@ export class OilCard {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   }
+
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -73,5 +74,7 @@ export class OilCard {
     const year = date.getFullYear();
     return `${day}.${month}.${year}`;
   }
-
+  goToEdit() {
+    this.router.navigate(['/oil/edit', this.oil.id]);
+  }
 }

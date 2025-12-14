@@ -42,7 +42,9 @@ export class PumpCreatePage implements OnInit {
   loadOils() {
     this.oilsService.getOils().subscribe({
       next: (response: any) => {
-        this.oils = response as OilInterface[];
+        const allOils = response as OilInterface[];
+        // Фильтруем только масла без насоса
+        this.oils = allOils.filter(oil => !oil.pumpUsage?.pumpId);
       },
       error: err => {
         console.error('Ошибка загрузки масел', err);

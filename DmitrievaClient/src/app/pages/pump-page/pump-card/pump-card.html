@@ -1,299 +1,283 @@
 @if (pump) {
   <form [formGroup]="pumpForm">
-    <a  [routerLink]="auth.hasRole('Laborant') ? null : ['/pump/edit', pump.id]"
-        [style.pointer-events]="auth.hasRole('Laborant') ? 'none' : 'auto'"
-        [style.cursor]="auth.hasRole('Laborant') ? 'default' : 'pointer'"
-        class="pump-card-link">
-      <mat-card class="app-pump-card">
-        <!-- Шапка карточки -->
-        <div class="card-header">
-          <span class="card-title">НАСОС №{{ pump.id }}</span>
-          @if (isEditing) {
-            <select 
-              formControlName="mode"
-              class="card-status-select"
-              (click)="$event.stopPropagation()"
-              (change)="updatePump()">
-              <option [value]="0">Работает</option>
-              <option [value]="1">Остановлен</option>
-              <option [value]="2">Резерв</option>
-              <option [value]="3">Ремонт</option>
-            </select>
+    <mat-card class="app-pump-card"
+      [style.cursor]="!auth.hasRole('Laborant') ? 'pointer' : 'default'"
+      (click)="!auth.hasRole('Laborant') && goToEdit()">
+      
+      <!-- Шапка карточки -->
+      <div class="card-header">
+        <span class="card-title">НАСОС №{{ pump.id }}</span>
+        @if (isEditing) {
+          <select 
+            formControlName="mode"
+            class="card-status-select"
+            (change)="updatePump()">
+            <option [value]="0">Работает</option>
+            <option [value]="1">Остановлен</option>
+            <option [value]="2">Резерв</option>
+            <option [value]="3">Ремонт</option>
+          </select>
+        } @else {
+          @if (pump.mode == 0) {
+            <span class="card-status">Работает</span>
+          } @else if (pump.mode == 1) {
+            <span class="card-status">Остановлен</span>
+          } @else if (pump.mode == 2) {
+            <span class="card-status">Резерв</span>
+          } @else if (pump.mode == 3) {
+            <span class="card-status">Ремонт</span>
           } @else {
-            @if (pump.mode == 0) {
-              <span class="card-status">Работает</span>
-            } @else if (pump.mode == 1) {
-              <span class="card-status">Остановлен</span>
-            } @else if (pump.mode == 2) {
-              <span class="card-status">Резерв</span>
-            } @else if (pump.mode == 3) {
-              <span class="card-status">Ремонт</span>
-            } @else {
-              <span class="card-status">Неизвестно</span>
-            }
+            <span class="card-status">Неизвестно</span>
           }
-            @if (isEditing) {
-            <select
-              formControlName="oilId"
-              class="card-status-select"
-              (click)="$event.stopPropagation()"
-              (change)="updatePump()">
-              <option [value]="null">Нет масла</option>
-              @for (oil of oils(); track oil.id) {
-                <option [value]="oil.id">
-                  Масло №{{ oil.id }}
-                </option>
-              }
-            </select>
-            } @else {
-            @if (pump.oilId != null) {
-              <span class="card-oil">Масло №{{ pump.oilId }}</span>
+        }
+        @if (isEditing) {
+          <select
+            formControlName="oilId"
+            class="card-status-select"
+            (change)="updatePump()">
+            <option [value]="null">Нет масла</option>
+            @for (oil of oils(); track oil.id) {
+              <option [value]="oil.id">
+                Масло №{{ oil.id }}
+              </option>
+            }
+          </select>
+        } @else {
+          @if (pump.oilId != null) {
+            <span class="card-oil">Масло №{{ pump.oilId }}</span>
+          } @else {
+            <span class="card-oil">Нет масла</span>
+          }
+        }
+      </div>
+
+      <!-- Три заголовка в строку -->
+      <div class="card-header-titles">
+        <div class="header-title-section">
+          <span class="header-title">ДАВЛЕНИЕ</span>
+        </div>
+        <div class="header-title-section">
+          <span class="header-title">ТЕМПЕРАТУРА</span>
+        </div>
+        <div class="header-title-section">
+          <span class="header-title">ЭНЕРГИЯ</span>
+        </div>
+      </div>
+
+      <!-- Три секции данных -->
+      <div class="card-sections">
+        <!-- Давление -->
+        <div class="card-section">
+          <div class="params">
+            <div class="param">
+              <span>Вход</span>
+              @if (isEditing) {
+                <div class="input-with-error">
+                  <input 
+                    formControlName="pressureIn"
+                    type="number"
+                    step="0.01"
+                    class="edit-input"
+                    [class.input-error]="pumpForm.get('pressureIn')?.invalid && pumpForm.get('pressureIn')?.touched"
+                    (change)="updatePump()">
+                  @if (getError('pressureIn')) {
+                    <span class="error-message">{{ getError('pressureIn') }}</span>
+                  }
+                </div>
               } @else {
-              <span class="card-oil">Нет масла</span>
+                <span class="value">{{pump.pressureIn}}</span>
               }
-            }
-           
-
-        </div>
-
-        <!-- Три заголовка в строку -->
-        <div class="card-header-titles">
-          <div class="header-title-section">
-            <span class="header-title">ДАВЛЕНИЕ</span>
-          </div>
-          <div class="header-title-section">
-            <span class="header-title">ТЕМПЕРАТУРА</span>
-          </div>
-          <div class="header-title-section">
-            <span class="header-title">ЭНЕРГИЯ</span>
-          </div>
-        </div>
-
-        <!-- Три секции данных -->
-        <div class="card-sections">
-          <!-- Давление -->
-          <div class="card-section">
-            <div class="params">
-              <div class="param">
-                <span>Вход</span>
-                @if (isEditing) {
-                  <div class="input-with-error">
-                    <input 
-                      formControlName="pressureIn"
-                      type="number"
-                      step="0.01"
-                      class="edit-input"
-                      [class.input-error]="pumpForm.get('pressureIn')?.invalid && pumpForm.get('pressureIn')?.touched"
-                      (click)="$event.stopPropagation()"
-                      (change)="updatePump()">
-                    @if (getError('pressureIn')) {
-                      <span class="error-message">{{ getError('pressureIn') }}</span>
-                    }
-                  </div>
-                } @else {
-                  <span class="value">{{pump.pressureIn}}</span>
-                }
-                <span class="unit">бар</span>
-              </div>
-              <div class="param">
-                <span>Выход</span>
-                @if (isEditing) {
-                  <div class="input-with-error">
-                    <input 
-                      formControlName="pressureOut"
-                      type="number"
-                      step="0.01"
-                      class="edit-input"
-                      [class.input-error]="pumpForm.get('pressureOut')?.invalid && pumpForm.get('pressureOut')?.touched"
-                      (click)="$event.stopPropagation()"
-                      (change)="updatePump()">
-                    @if (getError('pressureOut')) {
-                      <span class="error-message">{{ getError('pressureOut') }}</span>
-                    }
-                  </div>
-                } @else {
-                  <span class="value">{{pump.pressureOut}}</span>
-                }
-                <span class="unit">бар</span>
-              </div>
+              <span class="unit">бар</span>
             </div>
-          </div>
-
-          <!-- Температура -->
-          <div class="card-section">
-            <div class="params">
-              <div class="param">
-                <span>Корпус</span>
-                @if (isEditing) {
-                  <div class="input-with-error">
-                    <input 
-                      formControlName="temperatureBody"
-                      type="number"
-                      step="0.1"
-                      class="edit-input"
-                      [class.input-error]="pumpForm.get('temperatureBody')?.invalid && pumpForm.get('temperatureBody')?.touched"
-                      (click)="$event.stopPropagation()"
-                      (change)="updatePump()">
-                    @if (getError('temperatureBody')) {
-                      <span class="error-message">{{ getError('temperatureBody') }}</span>
-                    }
-                  </div>
-                } @else {
-                  <span class="value">{{pump.temperatureBody}}</span>
-                }
-                <span class="unit">°C</span>
-              </div>
-              <div class="param">
-                <span>Подшипник</span>
-                @if (isEditing) {
-                  <div class="input-with-error">
-                    <input 
-                      formControlName="temperatureBearing"
-                      type="number"
-                      step="0.1"
-                      class="edit-input"
-                      [class.input-error]="pumpForm.get('temperatureBearing')?.invalid && pumpForm.get('temperatureBearing')?.touched"
-                      (click)="$event.stopPropagation()"
-                      (change)="updatePump()">
-                    @if (getError('temperatureBearing')) {
-                      <span class="error-message">{{ getError('temperatureBearing') }}</span>
-                    }
-                  </div>
-                } @else {
-                  <span class="value">{{pump.temperatureBearing}}</span>
-                }
-                <span class="unit">°C</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Энергия -->
-          <div class="card-section">
-            <div class="params">
-              <div class="param">
-                <span>Мощность</span>
-                @if (isEditing) {
-                  <div class="input-with-error">
-                    <input 
-                      formControlName="power"
-                      type="number"
-                      step="0.1"
-                      class="edit-input"
-                      [class.input-error]="pumpForm.get('power')?.invalid && pumpForm.get('power')?.touched"
-                      (click)="$event.stopPropagation()"
-                      (change)="updatePump()">
-                    @if (getError('power')) {
-                      <span class="error-message">{{ getError('power') }}</span>
-                    }
-                  </div>
-                } @else {
-                  <span class="value">{{pump.power}}</span>
-                }
-                <span class="unit">кВт</span>
-              </div>
-              <div class="param">
-                <span>Обороты</span>
-                @if (isEditing) {
-                  <div class="input-with-error">
-                    <input 
-                      formControlName="shaftRotationFrequency"
-                      type="number"
-                      step="1"
-                      class="edit-input"
-                      [class.input-error]="pumpForm.get('shaftRotationFrequency')?.invalid && pumpForm.get('shaftRotationFrequency')?.touched"
-                      (click)="$event.stopPropagation()"
-                      (change)="updatePump()">
-                    @if (getError('shaftRotationFrequency')) {
-                      <span class="error-message">{{ getError('shaftRotationFrequency') }}</span>
-                    }
-                  </div>
-                } @else {
-                  <span class="value">{{pump.shaftRotationFrequency}}</span>
-                }
-                <span class="unit">об/мин</span>
-              </div>
+            <div class="param">
+              <span>Выход</span>
+              @if (isEditing) {
+                <div class="input-with-error">
+                  <input 
+                    formControlName="pressureOut"
+                    type="number"
+                    step="0.01"
+                    class="edit-input"
+                    [class.input-error]="pumpForm.get('pressureOut')?.invalid && pumpForm.get('pressureOut')?.touched"
+                    (change)="updatePump()">
+                  @if (getError('pressureOut')) {
+                    <span class="error-message">{{ getError('pressureOut') }}</span>
+                  }
+                </div>
+              } @else {
+                <span class="value">{{pump.pressureOut}}</span>
+              }
+              <span class="unit">бар</span>
             </div>
           </div>
         </div>
 
-        <!-- Большие значения внизу -->
-        <div class="card-big-values">
-          <div class="big-value">
-            <span class="title">УРОВЕНЬ МАСЛА</span>
-            @if (isEditing) {
-              <div class="big-value-input-group">
-                <input 
-                  formControlName="oilLevel"
-                  type="number"
-                  step="0.1"
-                  class="big-edit-input"
-                  [class.input-error]="pumpForm.get('oilLevel')?.invalid && pumpForm.get('oilLevel')?.touched"
-                  (click)="$event.stopPropagation()"
-                  (change)="updatePump()">
-                <span class="big-unit">%</span>
-              </div>
-            } @else {
-              <span class="value">{{pump.oilLevel}} <span class="big-unit">%</span></span>
-            }
-          </div>
-          <div class="big-value">
-            <span class="title">ТЕМПЕРАТУРА МАСЛА</span>
-            @if (isEditing) {
-              <div class="big-value-input-group">
-                <input 
-                  formControlName="oilTemperature"
-                  type="number"
-                  step="0.1"
-                  class="big-edit-input"
-                  [class.input-error]="pumpForm.get('oilTemperature')?.invalid && pumpForm.get('oilTemperature')?.touched"
-                  (click)="$event.stopPropagation()"
-                  (change)="updatePump()">
-                <span class="big-unit">°C</span>
-              </div>
-            } @else {
-              <span class="value">{{pump.oilTemperature}} <span class="big-unit">°C</span></span>
-            }
-          </div>
-          <div class="big-value">
-            <span class="title">ДАВЛЕНИЕ МАСЛА</span>
-            @if (isEditing) {
-              <div class="big-value-input-group">
-                <input 
-                  formControlName="oilPressure"
-                  type="number"
-                  step="0.01"
-                  class="big-edit-input"
-                  [class.input-error]="pumpForm.get('oilPressure')?.invalid && pumpForm.get('oilPressure')?.touched"
-                  (click)="$event.stopPropagation()"
-                  (change)="updatePump()">
-                <span class="big-unit">бар</span>
-              </div>
-            } @else {
-              <span class="value">{{pump.oilPressure}} <span class="big-unit">бар</span></span>
-            }
-          </div>
-          <div class="big-value">
-            <span class="title">ВИБРАЦИЯ</span>
-            @if (isEditing) {
-              <div class="big-value-input-group">
-                <input 
-                  formControlName="vibration"
-                  type="number"
-                  step="0.01"
-                  class="big-edit-input"
-                  [class.input-error]="pumpForm.get('vibration')?.invalid && pumpForm.get('vibration')?.touched"
-                  (click)="$event.stopPropagation()"
-                  (change)="updatePump()">
-                <span class="big-unit">мм/c</span>
-              </div>
-            } @else {
-              <span class="value">{{pump.vibration}} <span class="big-unit">мм/c</span></span>
-            }
+        <!-- Температура -->
+        <div class="card-section">
+          <div class="params">
+            <div class="param">
+              <span>Корпус</span>
+              @if (isEditing) {
+                <div class="input-with-error">
+                  <input 
+                    formControlName="temperatureBody"
+                    type="number"
+                    step="0.1"
+                    class="edit-input"
+                    [class.input-error]="pumpForm.get('temperatureBody')?.invalid && pumpForm.get('temperatureBody')?.touched"
+                    (change)="updatePump()">
+                  @if (getError('temperatureBody')) {
+                    <span class="error-message">{{ getError('temperatureBody') }}</span>
+                  }
+                </div>
+              } @else {
+                <span class="value">{{pump.temperatureBody}}</span>
+              }
+              <span class="unit">°C</span>
+            </div>
+            <div class="param">
+              <span>Подшипник</span>
+              @if (isEditing) {
+                <div class="input-with-error">
+                  <input 
+                    formControlName="temperatureBearing"
+                    type="number"
+                    step="0.1"
+                    class="edit-input"
+                    [class.input-error]="pumpForm.get('temperatureBearing')?.invalid && pumpForm.get('temperatureBearing')?.touched"
+                    (change)="updatePump()">
+                  @if (getError('temperatureBearing')) {
+                    <span class="error-message">{{ getError('temperatureBearing') }}</span>
+                  }
+                </div>
+              } @else {
+                <span class="value">{{pump.temperatureBearing}}</span>
+              }
+              <span class="unit">°C</span>
+            </div>
           </div>
         </div>
 
-      </mat-card>
-    </a>
+        <!-- Энергия -->
+        <div class="card-section">
+          <div class="params">
+            <div class="param">
+              <span>Мощность</span>
+              @if (isEditing) {
+                <div class="input-with-error">
+                  <input 
+                    formControlName="power"
+                    type="number"
+                    step="0.1"
+                    class="edit-input"
+                    [class.input-error]="pumpForm.get('power')?.invalid && pumpForm.get('power')?.touched"
+                    (change)="updatePump()">
+                  @if (getError('power')) {
+                    <span class="error-message">{{ getError('power') }}</span>
+                  }
+                </div>
+              } @else {
+                <span class="value">{{pump.power}}</span>
+              }
+              <span class="unit">кВт</span>
+            </div>
+            <div class="param">
+              <span>Обороты</span>
+              @if (isEditing) {
+                <div class="input-with-error">
+                  <input 
+                    formControlName="shaftRotationFrequency"
+                    type="number"
+                    step="1"
+                    class="edit-input"
+                    [class.input-error]="pumpForm.get('shaftRotationFrequency')?.invalid && pumpForm.get('shaftRotationFrequency')?.touched"
+                    (change)="updatePump()">
+                  @if (getError('shaftRotationFrequency')) {
+                    <span class="error-message">{{ getError('shaftRotationFrequency') }}</span>
+                  }
+                </div>
+              } @else {
+                <span class="value">{{pump.shaftRotationFrequency}}</span>
+              }
+              <span class="unit">об/мин</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Большие значения внизу -->
+      <div class="card-big-values">
+        <div class="big-value">
+          <span class="title">УРОВЕНЬ МАСЛА</span>
+          @if (isEditing) {
+            <div class="big-value-input-group">
+              <input 
+                formControlName="oilLevel"
+                type="number"
+                step="0.1"
+                class="big-edit-input"
+                [class.input-error]="pumpForm.get('oilLevel')?.invalid && pumpForm.get('oilLevel')?.touched"
+                (change)="updatePump()">
+              <span class="big-unit">%</span>
+            </div>
+          } @else {
+            <span class="value">{{pump.oilLevel}} <span class="big-unit">%</span></span>
+          }
+        </div>
+        <div class="big-value">
+          <span class="title">ТЕМПЕРАТУРА МАСЛА</span>
+          @if (isEditing) {
+            <div class="big-value-input-group">
+              <input 
+                formControlName="oilTemperature"
+                type="number"
+                step="0.1"
+                class="big-edit-input"
+                [class.input-error]="pumpForm.get('oilTemperature')?.invalid && pumpForm.get('oilTemperature')?.touched"
+                (change)="updatePump()">
+              <span class="big-unit">°C</span>
+            </div>
+          } @else {
+            <span class="value">{{pump.oilTemperature}} <span class="big-unit">°C</span></span>
+          }
+        </div>
+        <div class="big-value">
+          <span class="title">ДАВЛЕНИЕ МАСЛА</span>
+          @if (isEditing) {
+            <div class="big-value-input-group">
+              <input 
+                formControlName="oilPressure"
+                type="number"
+                step="0.01"
+                class="big-edit-input"
+                [class.input-error]="pumpForm.get('oilPressure')?.invalid && pumpForm.get('oilPressure')?.touched"
+                (change)="updatePump()">
+              <span class="big-unit">бар</span>
+            </div>
+          } @else {
+            <span class="value">{{pump.oilPressure}} <span class="big-unit">бар</span></span>
+          }
+        </div>
+        <div class="big-value">
+          <span class="title">ВИБРАЦИЯ</span>
+          @if (isEditing) {
+            <div class="big-value-input-group">
+              <input 
+                formControlName="vibration"
+                type="number"
+                step="0.01"
+                class="big-edit-input"
+                [class.input-error]="pumpForm.get('vibration')?.invalid && pumpForm.get('vibration')?.touched"
+                (change)="updatePump()">
+              <span class="big-unit">мм/c</span>
+            </div>
+          } @else {
+            <span class="value">{{pump.vibration}} <span class="big-unit">мм/c</span></span>
+          }
+        </div>
+      </div>
+
+    </mat-card>
   </form>
 } @else {
   <h1>Нет информации о насосах</h1>

@@ -9,6 +9,7 @@ import { PumpCreatePage } from './pages/pump-create-page/pump-create-page';
 import { OilCreatePage } from './pages/oil-create-page/oil-create-page';
 import { OilEditPage } from './pages/oil-edit-page/oil-edit-page';
 import { RegisterPage } from './pages/register-page/register-page';
+import { StatsPage } from './pages/stats-page/stats-page';
 
 export const routes: Routes = [
   { 
@@ -19,6 +20,7 @@ export const routes: Routes = [
       { path: '', component: PumpPage },
       { path: 'pumps', component: PumpPage },
       { path: 'oils', component: OilPage },
+      { path: 'stats', component: StatsPage },
 
       { 
         path: 'pump/edit/:id', 

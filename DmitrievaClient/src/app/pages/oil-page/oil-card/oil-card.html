@@ -1,180 +1,173 @@
 @if (oil) {
   <form [formGroup]="oilForm">
-    <a [routerLink]="auth.hasRole('Engineer')  ? null : ['/oil/edit', oil.id]" 
-       [style.pointer-events]="auth.hasRole('Engineer') ? 'none' : 'auto'"
-       [style.cursor]="auth.hasRole('Engineer')? 'default' : 'pointer'"
-       class="oil-card-link">
-      <mat-card class="app-oil-card">
-        <!-- Заголовок карточки -->
-        <div class="card-header">
-          <span class="card-title">МАСЛО №{{ oil.id }}</span>
-        </div>
+    <mat-card class="app-oil-card" 
+      [style.cursor]="!auth.hasRole('Engineer') ? 'pointer' : 'default'"
+      (click)="!auth.hasRole('Engineer') && goToEdit()">
+      
+      <!-- Заголовок карточки -->
+      <div class="card-header">
+        <span class="card-title">МАСЛО №{{ oil.id }}</span>
+      </div>
 
-        <!-- Два ряда параметров (2x3 сетка) -->
-        <div class="card-sections">
-          <!-- Ряд 1 -->
-          <div class="card-section">
-            <div class="param-group">
-              <span class="param-title">КИСЛОТНОЕ ЧИСЛО</span>
-              @if (isEditing) {
-                <div class="input-with-error">
-                  <input 
-                    formControlName="tan"
-                    type="number"
-                    step="0.01"
-                    class="edit-input"
-                    [class.input-error]="oilForm.get('tan')?.invalid && oilForm.get('tan')?.touched"
-                    (click)="$event.stopPropagation()"
-                    (change)="updateOil()">
-                  @if (getError('tan')) {
-                    <span class="error-message">{{ getError('tan') }}</span>
-                  }
-                </div>
-              } @else {
-                <span class="value">{{ oil.tan }}</span>
-              }
-              <span class="unit">мг KOH/г</span>
-            </div>
-          </div>
-
-          <div class="card-section">
-            <div class="param-group">
-              <span class="param-title">ДАТА ЗАЛИВКИ</span>
-              <span class="value">{{ formatDate(oil.installationDate) }}</span>
-              <span class="unit">({{ getDaysFromInstallation() }} дней)</span>
-            </div>
-          </div>
-
-          <div class="card-section">
-            <div class="param-group">
-              <span class="param-title">ВЯЗКОСТЬ</span>
-              @if (isEditing) {
-                <div class="input-with-error">
-                  <input 
-                    formControlName="viscosity"
-                    type="number"
-                    step="0.1"
-                    class="edit-input"
-                    [class.input-error]="oilForm.get('viscosity')?.invalid && oilForm.get('viscosity')?.touched"
-                    (click)="$event.stopPropagation()"
-                    (change)="updateOil()">
-                  @if (getError('viscosity')) {
-                    <span class="error-message">{{ getError('viscosity') }}</span>
-                  }
-                </div>
-              } @else {
-                <span class="value">{{ oil.viscosity }}</span>
-              }
-              <span class="unit">cSt</span>
-            </div>
-          </div>
-
-          <!-- Ряд 2 -->
-          <div class="card-section">
-            <div class="param-group">
-              <span class="param-title">ОТРАБОТАНО ЧАСОВ</span>
-              @if (isEditing) {
-                <div class="input-with-error">
-                  <input 
-                    formControlName="operatingHours"
-                    type="number"
-                    step="1"
-                    class="edit-input"
-                    [class.input-error]="oilForm.get('operatingHours')?.invalid && oilForm.get('operatingHours')?.touched"
-                    (click)="$event.stopPropagation()"
-                    (change)="updateOil()">
-                  @if (getError('operatingHours')) {
-                    <span class="error-message">{{ getError('operatingHours') }}</span>
-                  }
-                </div>
-              } @else {
-                <span class="value">{{ oil.operatingHours }}</span>
-              }
-              <span class="unit">ч</span>
-            </div>
-          </div>
-
-          <div class="card-section">
-            <div class="param-group">
-              <span class="param-title">СОДЕРЖАНИЕ ВОДЫ</span>
-              @if (isEditing) {
-                <div class="input-with-error">
-                  <input 
-                    formControlName="waterContent"
-                    type="number"
-                    step="0.01"
-                    class="edit-input"
-                    [class.input-error]="oilForm.get('waterContent')?.invalid && oilForm.get('waterContent')?.touched"
-                    (click)="$event.stopPropagation()"
-                    (change)="updateOil()">
-                  @if (getError('waterContent')) {
-                    <span class="error-message">{{ getError('waterContent') }}</span>
-                  }
-                </div>
-              } @else {
-                <span class="value">{{ oil.waterContent }}</span>
-              }
-              <span class="unit">%</span>
-            </div>
-          </div>
-
-          <div class="card-section">
-            <div class="param-group">
-              <span class="param-title">ОТРАБОТАНО ЦИКЛОВ</span>
-              @if (isEditing) {
-                <div class="input-with-error">
-                  <input 
-                    formControlName="startStopCycles"
-                    type="number"
-                    step="1"
-                    class="edit-input"
-                    [class.input-error]="oilForm.get('startStopCycles')?.invalid && oilForm.get('startStopCycles')?.touched"
-                    (click)="$event.stopPropagation()"
-                    (change)="updateOil()">
-                  @if (getError('startStopCycles')) {
-                    <span class="error-message">{{ getError('startStopCycles') }}</span>
-                  }
-                </div>
-              } @else {
-                <span class="value">{{ oil.startStopCycles }}</span>
-              }
-              <span class="unit">циклов</span>
-            </div>
+      <!-- Два ряда параметров (2x3 сетка) -->
+      <div class="card-sections">
+        <!-- Ряд 1 -->
+        <div class="card-section">
+          <div class="param-group">
+            <span class="param-title">КИСЛОТНОЕ ЧИСЛО</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="tan"
+                  type="number"
+                  step="0.01"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('tan')?.invalid && oilForm.get('tan')?.touched"
+                  (change)="updateOil()">
+                @if (getError('tan')) {
+                  <span class="error-message">{{ getError('tan') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.tan }}</span>
+            }
+            <span class="unit">мг KOH/г</span>
           </div>
         </div>
 
-        <!-- Вычисленные параметры (большие значения) -->
-        <div class="card-big-values">
-          <div class="big-value">
-            <span class="title">ИЗНОС</span>
-            <span class="value">{{ (oil.wear || 0).toFixed(2) }}</span>
-            <span class="big-unit">мг/л</span>
+        <div class="card-section">
+          <div class="param-group">
+            <span class="param-title">ДАТА ЗАЛИВКИ</span>
+            <span class="value">{{ formatDate(oil.installationDate) }}</span>
+            <span class="unit">({{ getDaysFromInstallation() }} дней)</span>
           </div>
-          <div class="big-value">
-            <span class="title">ЗАГРЯЗНЕНИЕ</span>
-            <span class="value">{{ (oil.contamination || 0).toFixed(2) }}</span>
-            <span class="big-unit">мкм</span>
-          </div>
-          <div class="big-value">
-            <span class="title">СОСТОЯНИЕ</span>
-            <span class="string-value" [ngClass]="'status-' + (oil.status?.toLowerCase() || 'normal')">
-              {{ oil.status || 'Нормальное' }}
-            </span>
-          </div>
-          @if (oil.pumpUsage?.pumpId) {
-            <div class="big-value">
-              <span class="title">НАСОС</span>
-              <span class="string-value">№{{ oil.pumpUsage?.pumpId }}</span>
-            </div>
-          } @else {
-            <div class="big-value no-usage">
-              <span class="title">НАСОС</span>
-              <span class="value">Не используется</span>
-            </div>
-          }
         </div>
-      </mat-card>
-    </a>
+
+        <div class="card-section">
+          <div class="param-group">
+            <span class="param-title">ВЯЗКОСТЬ</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="viscosity"
+                  type="number"
+                  step="0.1"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('viscosity')?.invalid && oilForm.get('viscosity')?.touched"
+                  (change)="updateOil()">
+                @if (getError('viscosity')) {
+                  <span class="error-message">{{ getError('viscosity') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.viscosity }}</span>
+            }
+            <span class="unit">cSt</span>
+          </div>
+        </div>
+
+        <!-- Ряд 2 -->
+        <div class="card-section">
+          <div class="param-group">
+            <span class="param-title">ОТРАБОТАНО ЧАСОВ</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="operatingHours"
+                  type="number"
+                  step="1"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('operatingHours')?.invalid && oilForm.get('operatingHours')?.touched"
+                  (change)="updateOil()">
+                @if (getError('operatingHours')) {
+                  <span class="error-message">{{ getError('operatingHours') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.operatingHours }}</span>
+            }
+            <span class="unit">ч</span>
+          </div>
+        </div>
+
+        <div class="card-section">
+          <div class="param-group">
+            <span class="param-title">СОДЕРЖАНИЕ ВОДЫ</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="waterContent"
+                  type="number"
+                  step="0.01"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('waterContent')?.invalid && oilForm.get('waterContent')?.touched"
+                  (change)="updateOil()">
+                @if (getError('waterContent')) {
+                  <span class="error-message">{{ getError('waterContent') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.waterContent }}</span>
+            }
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="card-section">
+          <div class="param-group">
+            <span class="param-title">ОТРАБОТАНО ЦИКЛОВ</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="startStopCycles"
+                  type="number"
+                  step="1"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('startStopCycles')?.invalid && oilForm.get('startStopCycles')?.touched"
+                  (change)="updateOil()">
+                @if (getError('startStopCycles')) {
+                  <span class="error-message">{{ getError('startStopCycles') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.startStopCycles }}</span>
+            }
+            <span class="unit">циклов</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Вычисленные параметры (большие значения) -->
+      <div class="card-big-values">
+        <div class="big-value">
+          <span class="title">ИЗНОС</span>
+          <span class="value">{{ (oil.wear || 0).toFixed(2) }}</span>
+          <span class="big-unit">мг/л</span>
+        </div>
+        <div class="big-value">
+          <span class="title">ЗАГРЯЗНЕНИЕ</span>
+          <span class="value">{{ (oil.contamination || 0).toFixed(2) }}</span>
+          <span class="big-unit">мкм</span>
+        </div>
+        <div class="big-value">
+          <span class="title">СОСТОЯНИЕ</span>
+          <span class="string-value" [ngClass]="'status-' + (oil.status?.toLowerCase() || 'normal')">
+            {{ oil.status || 'Нормальное' }}
+          </span>
+        </div>
+        @if (oil.pumpUsage?.pumpId) {
+          <div class="big-value">
+            <span class="title">НАСОС</span>
+            <span class="string-value">№{{ oil.pumpUsage?.pumpId }}</span>
+          </div>
+        } @else {
+          <div class="big-value no-usage">
+            <span class="title">НАСОС</span>
+            <span class="value">Не используется</span>
+          </div>
+        }
+      </div>
+    </mat-card>
   </form>
 } @else {
   <h1>Нет информации о масле</h1>

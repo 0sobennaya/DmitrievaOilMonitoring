@@ -72,7 +72,6 @@ namespace DmitrievaOilMonitoringApi.DTO
     {
         public int Id { get; set; }
         public double Wear { get; set; }
-        public string Status { get; set; }
         public double OperatingHours { get; set; }
     }
     public class StatisticsDTO

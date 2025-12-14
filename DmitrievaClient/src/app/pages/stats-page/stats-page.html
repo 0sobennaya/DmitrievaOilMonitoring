@@ -1,0 +1,66 @@
+<div class="stats-container">
+  <h1 class="stats-title">Статистика масел</h1>
+
+  @if (statistics(); as stats) {
+    <!-- KPI карточки -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Всего масел</div>
+        <div class="metric-value">{{ stats.totalOils }}</div>
+      </div>
+      <div class="metric-card accent-teal">
+        <div class="metric-label">Нормальное</div>
+        <div class="metric-value">{{ stats.normalOils }}</div>
+      </div>
+      <div class="metric-card accent-orange">
+        <div class="metric-label">Удовлетворительное</div>
+        <div class="metric-value">{{ stats.warningOils }}</div>
+      </div>
+      <div class="metric-card accent-red">
+        <div class="metric-label">Критическое</div>
+        <div class="metric-value">{{ stats.totalOils - stats.normalOils - stats.warningOils }}</div>
+      </div>
+      <div class="metric-card accent-blue">
+        <div class="metric-label">Износ</div>
+        <div class="metric-value">{{ stats.averageWear.toFixed(1) }}мг/л</div>
+      </div>
+      <div class="metric-card accent-purple">
+        <div class="metric-label">Загрязнение</div>
+        <div class="metric-value">{{ stats.averageContamination.toFixed(1) }}мкм</div>
+      </div>
+    </div>
+
+    <!-- Диаграмма статуса -->
+    <div class="chart-section">
+      <h2>Распределение по статусам</h2>
+      <div class="chart-wrapper">
+        <canvas
+          baseChart
+          type="doughnut"
+          [data]="statusChartData()"
+          [options]="statusChartOptions">
+        </canvas>
+      </div>
+    </div>
+  }
+  <!-- Критические масла -->
+<div class="critical-section">
+  <h2>Критические масла</h2>
+  
+  @if (criticalWear().length > 0) {
+    <div class="chart-wrapper">
+      <canvas class="canvas-grid"
+        baseChart
+        type="bar"
+        [data]="criticalChartData()"
+        [options]="criticalChartOptions">
+      </canvas>
+    </div>
+  } @else {
+    <div class="empty-state">
+      <p>Критических масел не обнаружено</p>
+    </div>
+  }
+</div>
+
+</div>
