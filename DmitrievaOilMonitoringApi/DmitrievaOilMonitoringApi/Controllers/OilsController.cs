@@ -25,7 +25,7 @@ namespace DmitrievaOilMonitoringApi.Controllers
         }
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<OilResponseDTO>> GetOil(int id)
+        public async Task<ActionResult<OilDTO>> GetOil(int id)
         {
             var oil = await _service.GetById(id);
             if (oil == null)

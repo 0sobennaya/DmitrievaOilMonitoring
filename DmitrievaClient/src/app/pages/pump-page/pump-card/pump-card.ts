@@ -1,34 +1,74 @@
-import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, SimpleChanges, OnInit } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { PumpInterface } from '../../../data/interfaces/pumps.interface';
+import { OilInterface } from '../../../data/interfaces/oils.interface';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { MatOptionModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { OilsService } from '../../../data/services/oils';
+import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-pump-card',
   standalone: true, 
-  imports: [MatCard, CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [
+    MatCard, 
+    CommonModule, 
+    RouterLink, 
+    ReactiveFormsModule,
+    MatOptionModule,
+    MatFormFieldModule,
+    MatSelectModule,
+  ],
   templateUrl: './pump-card.html',
   styleUrl: './pump-card.css',
 })
-export class PumpCard {
+export class PumpCard implements OnInit {
   @Input() pump!: PumpInterface;
-  @Input() isEditing = false; //  режим редактированввия
+  @Input() isEditing = false; // режим редактирования
   @Output() pumpChanged = new EventEmitter<PumpInterface>(); // эмитит изменения
-  // @Input() oils: OilInterface[] = [];
 
   pumpForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  // Сигналы для масел
+  oils = signal<OilInterface[]>([]);
+  loadingOils = signal(false);
+
+  constructor(
+    private fb: FormBuilder,
+    private oilsService: OilsService
+  ) {}
    
   ngOnInit() {
     this.initForm();
+    this.loadOils();
   }
+
   ngOnChanges(changes: SimpleChanges) {
     if ((changes['pump'] || changes['isEditing']) && this.pump) {
-    this.initForm();
+      this.initForm();
+    }
   }
+
+  loadOils() {
+    this.loadingOils.set(true);
+    this.oilsService.getOils().subscribe({
+      next: (response: any) => {
+        console.log('Загруженные масла:', response);
+        // Преобразуем ответ в массив OilInterface
+        const oilsArray = Array.isArray(response) ? response : (response.data || []);
+        this.oils.set(oilsArray as OilInterface[]);
+        this.loadingOils.set(false);
+      },
+      error: (err) => {
+        console.error('Ошибка загрузки масел:', err);
+        this.oils.set([]);
+        this.loadingOils.set(false);
+      },
+    });
   }
 
   initForm() {
@@ -45,7 +85,7 @@ export class PumpCard {
       oilTemperature: [this.pump?.oilTemperature, [Validators.required, Validators.min(0), Validators.max(150)]],
       oilPressure: [this.pump?.oilPressure, [Validators.required, Validators.min(0), Validators.max(500)]],
       vibration: [this.pump?.vibration, [Validators.required, Validators.min(0), Validators.max(100)]],
-      oilId: [this.pump?.oilId]
+      oilId: [this.pump?.oilId, Validators.required]
     });
   }
 
@@ -58,6 +98,7 @@ export class PumpCard {
       console.warn('Форма невалидна!');
     }
   }
+
   getError(fieldName: string): string | null {
     const control = this.pumpForm.get(fieldName);
     if (control?.invalid && control?.touched) {
@@ -66,5 +107,11 @@ export class PumpCard {
       if (control.hasError('max')) return `Максимум: ${control.getError('max').max}`;
     }
     return null;
+  }
+
+  // Вспомогательный метод для отображения информации о масле
+  getOilInfo(oilId: number | undefined): OilInterface | undefined {
+    if (!oilId) return undefined;
+    return this.oils().find(oil => oil.id === oilId);
   }
 }

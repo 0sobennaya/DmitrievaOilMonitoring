@@ -25,9 +25,13 @@ import { OilInterface } from '../../data/interfaces/oils.interface';
 })
 export class OilPage {
   private router = inject(Router);
-  private oilsService = inject(OilsService);
 
   oils = signal<OilInterface[]>([]);
+  constructor(private oilsService: OilsService) {
+  this.oilsService.getOils().subscribe({
+    next: (oils: OilInterface[]) => this.oils.set(oils)
+  });
+}
   loading = signal(false);
   viewMode = signal<'cards' | 'table'>('cards');
 
@@ -39,6 +43,10 @@ export class OilPage {
   'installationDate',
   'operatingHours',
   'startStopCycles',
+  'wear',           
+  'contamination',  
+  'status',         
+  'PumpId'
   ];
   ngOnInit() {
     this.loadOils();

@@ -1,1 +1,60 @@
-<p>oil-edit-page works!</p>
+<div class="oil-detail-container">
+  <!-- Кнопка "Назад" -->
+  <div class="header-buttons">
+    <button mat-button (click)="goBack()" class="back-btn">
+      ← Вернуться к списку масел
+    </button>
+  </div>
+
+  @if (oil()) {
+    <div class="detail-wrapper">
+      <div class="card-container">
+        <app-oil-card 
+          [oil]="oil()!" 
+          [isEditing]="isEditing()"
+          (oilChanged)="onOilChanged($event)">
+        </app-oil-card>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="action-buttons">
+        @if (!isEditing()) {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="startEditing()"
+            class="edit-btn">
+            Редактировать
+          </button>
+          <!-- Кнопка удаления -->
+          <button 
+            mat-raised-button 
+            color="warn"
+            (click)="deleteOil()"
+            [disabled]="loading()"
+            class="delete-btn">
+            {{ loading() ? 'Удаление...' : 'Удалить' }}
+          </button>
+        } @else {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="saveOil()"
+            [disabled]="!isChanged() || loading()"
+            class="save-btn">
+            {{ loading() ? 'Сохраняю...' : 'Сохранить изменения' }}
+          </button>
+          <button 
+            mat-stroked-button 
+            (click)="cancelEditing()"
+            [disabled]="loading()"
+            class="cancel-btn">
+            Отмена
+          </button>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="loading">Загрузка...</p>
+  }
+</div>

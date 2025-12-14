@@ -3,7 +3,7 @@ import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCard } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
-import { OilInterface } from '../../../data/interfaces/oils.interface';
+import { OilInterface, OilResponse, OilUpdateRequest } from '../../../data/interfaces/oils.interface';
 
 @Component({
   selector: 'app-oil-card',
@@ -14,7 +14,7 @@ import { OilInterface } from '../../../data/interfaces/oils.interface';
 export class OilCard {
   @Input() oil!: OilInterface;
   @Input() isEditing = false;
-  @Output() oilChanged = new EventEmitter<OilInterface>();
+  @Output() oilChanged = new EventEmitter<OilUpdateRequest>();
 
   oilForm!: FormGroup;
 
@@ -41,9 +41,8 @@ export class OilCard {
   }
   updateOil() {
     if (this.oilForm.valid) {
-      const updatedOil = this.oilForm.value;
-      this.oil = updatedOil;
-      this.oilChanged.emit(this.oil);
+      const updatedOil: OilUpdateRequest = this.oilForm.value;
+      this.oilChanged.emit(updatedOil);
     } else {
       console.warn('Форма невалидна!');
     }

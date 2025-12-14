@@ -73,7 +73,7 @@ export class PumpCreatePage implements OnInit {
       return;
     }
 
-    const pump = this.pumpForm.value;
+    const pump = this.pumpForm.value as PumpInterface;
     this.loading.set(true);
 
     this.pumpsService.createPump(pump).subscribe({

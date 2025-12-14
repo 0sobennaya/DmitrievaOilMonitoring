@@ -1,1 +1,110 @@
-<p>oil-create-page works!</p>
+<div class="create-container">
+  <h1>Создать новое масло</h1>
+
+  <form [formGroup]="oilForm" class="oil-form">
+    <div class="form-section">
+        <h2>Основные параметры</h2>
+        <mat-form-field appearance="outline">
+        <mat-label>Кислотное число</mat-label>
+        <input
+          matInput
+          formControlName="tan"
+          type="number"
+          
+          [class.input-error]="oilForm.get('tan')?.invalid && oilForm.get('tan')?.touched"
+        />
+        @if (getError('tan')) {
+          <span class="error-message">{{ getError('tan') }}</span>
+        }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+        <mat-label>Вязкость</mat-label>
+        <input
+          matInput
+          formControlName="viscosity"
+          type="number"
+          
+          [class.input-error]="oilForm.get('viscosity')?.invalid && oilForm.get('viscosity')?.touched"
+        />
+        @if (getError('viscosity')) {
+          <span class="error-message">{{ getError('viscosity') }}</span>
+        }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+        <mat-label>Содержание воды (%)</mat-label>
+        <input
+          matInput
+          formControlName="waterContent"
+          type="number"
+          
+          [class.input-error]="oilForm.get('waterContent')?.invalid && oilForm.get('waterContent')?.touched"
+        />
+        @if (getError('waterContent')) {
+          <span class="error-message">{{ getError('waterContent') }}</span>
+        }
+        </mat-form-field>
+        </div>
+        <div class="form-section">
+            <h2>Использование</h2>
+                    <mat-form-field appearance="outline">
+            <mat-label>Дата заливки</mat-label>
+
+            <input
+                matInput
+                [matDatepicker]="picker"
+                formControlName="installationDate"
+                [class.input-error]="oilForm.get('installationDate')?.invalid && oilForm.get('installationDate')?.touched"
+            />
+
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+
+            @if (getError('installationDate')) {
+                <span class="error-message">{{ getError('installationDate') }}</span>
+            }
+            </mat-form-field>
+
+        <mat-form-field appearance="outline">
+        <mat-label>Отработано часов</mat-label>
+        <input
+          matInput
+          formControlName="operatingHours"
+          type="number"
+          
+          [class.input-error]="oilForm.get('operatingHours')?.invalid && oilForm.get('operatingHours')?.touched"
+        />
+        @if (getError('operatingHours')) {
+          <span class="error-message">{{ getError('operatingHours') }}</span>
+        }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Отработано циклов</mat-label>
+        <input
+          matInput
+          formControlName="startStopCycles"
+          type="number"
+          
+          [class.input-error]="oilForm.get('startStopCycles')?.invalid && oilForm.get('startStopCycles')?.touched"
+        />
+        @if (getError('startStopCycles')) {
+          <span class="error-message">{{ getError('startStopCycles') }}</span>
+        }
+        </mat-form-field>
+        </div>
+        <div class="form-actions">
+            <button
+            mat-raised-button
+            color="primary"
+            (click)="createOil()"
+            [disabled]="loading()"
+            type="button"
+            >
+            {{ loading() ? 'Создание...' : 'Создать масло' }}
+            </button>
+            <button mat-stroked-button (click)="cancel()" type="button">Отмена</button>
+        </div>
+    </form>
+</div>
+

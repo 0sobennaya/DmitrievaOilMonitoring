@@ -31,29 +31,27 @@
               <span class="card-status">Неизвестно</span>
             }
           }
-            <!--
             @if (isEditing) {
-              <select 
-                formControlName="oilId"
-                class="card-oil-select"
-                (click)="$event.stopPropagation()"
-                (change)="updatePump()">
-                <option [value]="null">Нет масла</option>
-                @for (oil of oils; track oil.id) {
-                  <option [value]="oil.id">{{oil.name}} (№{{oil.id}})</option>
-                }
-              </select>
+            <select
+              formControlName="oilId"
+              class="card-status-select"
+              (click)="$event.stopPropagation()"
+              (change)="updatePump()">
+              <option [ngValue]="null">Нет масла</option>
+              @for (oil of oils(); track oil.id) {
+                <option [value]="oil.id">
+                  Масло №{{ oil.id }}
+                </option>
+              }
+            </select>
             } @else {
-              @if (pump.oil != null) {
-                <span class="card-oil">Масло №{{pump.oilId}}</span>
+            @if (pump.oilId != null) {
+              <span class="card-oil">Масло №{{ pump.oilId }}</span>
               } @else {
-                <span class="card-oil">Нет масла</span>
+              <span class="card-oil">Нет масла</span>
               }
             }
-            -->
-
-            <!-- ВРЕМЕННО ПРОСТО ПОКАЗЫВАЙ ЗНАЧЕНИЕ -->
-            <span class="card-oil">Масло №{{pump.oilId}}</span>
+           
 
         </div>
 

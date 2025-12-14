@@ -1,15 +1,11 @@
 <div class="oil-page">
-  <!-- Заголовок и кнопки -->
   <div class="oil-header">
     <button 
       mat-raised-button 
       class="create-btn" 
-      color="primary"
       (click)="goToCreate()">
       Создать масло
     </button>
-
-    <!-- Переключатель вида -->
     <div class="view-controls">
       <button 
         mat-icon-button 
@@ -28,7 +24,6 @@
     </div>
   </div>
 
-  <!-- ВИД КАРТОЧЕК -->
   @if (viewMode() === 'cards') {
     <div class="oil-card__wrapper">
       @for (oil of oils(); track oil.id) {
@@ -40,7 +35,6 @@
     </div>
   }
 
-  <!--  ВИД ТАБЛИЦЫ -->
   @if (viewMode() === 'table') {
     <div class="table-container">
       <table mat-table [dataSource]="oils()" class="oils-table">
@@ -87,12 +81,41 @@
         <ng-container matColumnDef="startStopCycles">
           <th mat-header-cell *matHeaderCellDef>Отработано циклов</th>
           <td mat-cell *matCellDef="let oil">{{ oil.startStopCycles }}</td>
+        </ng-container> 
+
+        <!-- Wear Column -->
+        <ng-container matColumnDef="wear">
+          <th mat-header-cell *matHeaderCellDef>Износ</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.wear }}</td>
+        </ng-container>
+
+        <!-- Сontamination Column -->
+        <ng-container matColumnDef="contamination">
+          <th mat-header-cell *matHeaderCellDef>Загрязнение</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.contamination }}</td>
+        </ng-container>
+
+        <!-- status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Состояние</th>
+          <td mat-cell *matCellDef="let oil">{{ oil.status }}</td>
+        </ng-container>
+        <!-- Pump ID Column -->
+        <ng-container matColumnDef="PumpId">
+        <th mat-header-cell *matHeaderCellDef>ID насоса</th>
+        <td mat-cell *matCellDef="let oil">
+          @if (oil.pumpUsage && oil.pumpUsage.pumpId && oil.pumpUsage.pumpId > 0) {
+            {{ oil.pumpUsage.pumpId }}
+          } @else {
+            <span>—</span>
+          }
+        </td>
         </ng-container>
 
         <!-- Header Row -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         
-        <!-- Data Row - кликабельная -->
+        <!-- Data Row -->
         <tr 
           mat-row 
           *matRowDef="let row; columns: displayedColumns;"
