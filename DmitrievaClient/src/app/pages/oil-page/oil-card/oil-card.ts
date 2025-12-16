@@ -2,13 +2,13 @@ import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCard } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { OilInterface, OilUpdateRequest } from '../../../data/interfaces/oils.interface';
 import { AuthService } from '../../../data/services/auth.service';
 
 @Component({
   selector: 'app-oil-card',
-  imports: [MatCard, CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [MatCard, CommonModule, ReactiveFormsModule],
   templateUrl: './oil-card.html',
   styleUrl: './oil-card.css',
 })

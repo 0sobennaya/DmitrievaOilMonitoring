@@ -37,11 +37,11 @@
             double wear = GetWear(currentTemperature);
             double contamination = GetContamination(currentTemperature);
 
-            if (wear > 20 || contamination > 8 || WaterContent > 2)
+            if (wear > 20 || contamination > 8 || WaterContent > 2 || GetWear(currentTemperature) > 10 || GetContamination(currentTemperature) > 5)
                 return "Критическое";
-            else if (wear > 15 || contamination > 5 || WaterContent > 1.5)
+            else if (wear > 15 || contamination > 5 || WaterContent > 1.5 || GetWear(currentTemperature) > 5 || GetContamination(currentTemperature) > 2)
                 return "Предельное";
-            else if (wear > 10 || contamination > 3 || WaterContent > 1)
+            else if (wear > 10 || contamination > 3 || WaterContent > 1 || GetWear(currentTemperature) > 2 || GetContamination(currentTemperature) > 1)
                 return "Удовлетворительное";
             else 
                 return "Нормальное";

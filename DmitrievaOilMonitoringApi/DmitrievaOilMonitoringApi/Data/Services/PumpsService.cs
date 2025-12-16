@@ -219,6 +219,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 .Select(po => new VibrationAndContaminationDTO
                 {
                     PumpId = po.Id,
+                    OilTemperature = po.OilTemperature,
                     Vibration = po.Vibration,
                     OilContamination = po.Oil.GetContamination(po.OilTemperature),
                     OilStatus = po.Oil.GetOilStatus(po.OilTemperature)

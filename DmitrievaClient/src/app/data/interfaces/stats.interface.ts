@@ -18,3 +18,12 @@ export interface PumpHealth {
   operatingHours: number;
   oilStatus: string;
 }
+export interface PumpDetails {
+  
+    pumpId: number,
+    oilTemperature : number,
+    vibration: number,
+    oilContamination: number,
+    oilStatus: string;
+  
+}

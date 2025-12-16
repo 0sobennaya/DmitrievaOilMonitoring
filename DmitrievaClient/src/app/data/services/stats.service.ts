@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
-import { CriticalWear, OilStatistics, PumpHealth } from '../interfaces/stats.interface';
+import { CriticalWear, OilStatistics, PumpDetails, PumpHealth } from '../interfaces/stats.interface';
 import { AuthService } from './auth.service';
 @Injectable({
   providedIn: 'root'
@@ -43,6 +43,10 @@ getCriticalWear() {
 
 getPumpsHealth(){
     return this.http.get<PumpHealth[]>(`${this.baseApiUrl}Pumps/pumps-and-oils-health`)
+  }
+
+getPumpDetails(){
+  return this.http.get<PumpDetails[]>(`${this.baseApiUrl}Pumps/pump-vibration-and-oil-contanimation`)
 }
 
 }
