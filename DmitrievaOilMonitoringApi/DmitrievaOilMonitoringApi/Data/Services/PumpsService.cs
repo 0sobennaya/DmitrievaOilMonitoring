@@ -159,7 +159,6 @@ namespace DmitrievaOilMonitoringApi.Data.Services
 
             if (pumpDTO.OilId.HasValue)
             {
-                // Если передан новый OilId
                 if (pump.OilId != pumpDTO.OilId.Value)
                 {
                     var newOil = await _context.Oils.FindAsync(pumpDTO.OilId.Value);
@@ -174,13 +173,42 @@ namespace DmitrievaOilMonitoringApi.Data.Services
             }
             else
             {
-                // Если OilId = null, удаляем масло из насоса
                 pump.OilId = null;
                 pump.Oil = null;
             }
 
             await _context.SaveChangesAsync();
 
+            // Проверяем, есть ли у насоса связанное масло
+            if (pump.OilId.HasValue)
+            {
+                // Загружаем связанное масло
+                var oil = await _context.Oils
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.Id == pump.OilId.Value);
+
+                if (oil != null)
+                {
+                    // Создаём запись в OilConditionRecords
+                    var record = new OilConditionRecord
+                    {
+                        PumpId = pump.Id,
+                        MeasurementDate = DateTime.UtcNow, 
+                        TAN = oil.TAN,
+                        WaterContentPct = oil.WaterContent,
+                        ImpuritiesPct = oil.ImpuritiesPct,
+                        FlashPointC = oil.FlashPointC,
+                        MeanVibration = pump.Vibration,      
+                        MeanOilTemp = pump.OilTemperature,   
+                        OperatingHours = oil.OperatingHours,  
+                        IsTopup = false, 
+                        HasLeak = false  
+                    };
+
+                    _context.OilConditionRecords.Add(record);
+                    await _context.SaveChangesAsync(); 
+                }
+            }
             // Отключаем отслеживание для свежей загрузки данных
             _context.Entry(pump).State = EntityState.Detached;
 

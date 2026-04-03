@@ -113,23 +113,49 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         public async Task<OilResponseDTO> Update(int id, OilUpdateDTO oilDTO)
         {
             var oil = await _context.Oils.FindAsync(id);
-            if (oil != null) {
-                oil.TAN = oilDTO.TAN;
-                oil.Viscosity = oilDTO.Viscosity;
-                oil.WaterContent = oilDTO.WaterContent;
-                oil.ImpuritiesPct = oilDTO.ImpuritiesPct;
-                oil.FlashPointC = oilDTO.FlashPointC;
-                oil.OperatingHours = oilDTO.OperatingHours;
-                oil.StartStopCycles = oilDTO.StartStopCycles;
-                await _context.SaveChangesAsync();
+            if (oil == null)
+            {
+                return null; 
             }
-            // Ищем насос для отображения актуальных характеристик
+            oil.TAN = oilDTO.TAN;
+            oil.Viscosity = oilDTO.Viscosity;
+            oil.WaterContent = oilDTO.WaterContent;
+            oil.ImpuritiesPct = oilDTO.ImpuritiesPct;
+            oil.FlashPointC = oilDTO.FlashPointC;
+            oil.OperatingHours = oilDTO.OperatingHours;
+            oil.StartStopCycles = oilDTO.StartStopCycles;
+
+            await _context.SaveChangesAsync();
+
+            // Ищем насос, к которому привязано это масло
             var pump = await _context.Pumps
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.OilId == oil.Id);
 
-            return OilToResponseDTO(oil, pump);
+            // Если насос найден, создаём запись в OilConditionRecords
+            if (pump != null)
+            {
+                var record = new OilConditionRecord
+                {
+                    PumpId = pump.Id,
+                    MeasurementDate = DateTime.UtcNow, 
+                    TAN = oil.TAN,
+                    WaterContentPct = oil.WaterContent,
+                    ImpuritiesPct = oil.ImpuritiesPct,
+                    FlashPointC = oil.FlashPointC,
+                    MeanVibration = pump.Vibration, 
+                    MeanOilTemp = pump.OilTemperature, 
+                    OperatingHours = oil.OperatingHours, 
+                    IsTopup = false, 
+                    HasLeak = false  
+                };
 
+                _context.OilConditionRecords.Add(record);
+                await _context.SaveChangesAsync();
+            }
+
+            // Возвращаем актуальные данные
+            return OilToResponseDTO(oil, pump);
         }
         public OilCharacteristicsDTO CalculateCharacteristics(Oil oil, double temperature)
         {
