@@ -10,6 +10,7 @@ namespace DmitrievaOilMonitoringApi.Data
         public DbSet<Oil> Oils { get; set; }
         public DbSet<Pump> Pumps { get; set; }
         public DbSet<Person> People { get; set; }
+        public DbSet<OilConditionRecord> OilConditionRecords { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Pump>()
@@ -21,6 +22,10 @@ namespace DmitrievaOilMonitoringApi.Data
             modelBuilder.Entity<Person>()
                 .HasIndex(p => p.Login)
                 .IsUnique();
+            modelBuilder.Entity<OilConditionRecord>() 
+                .HasOne<Pump>()
+                .WithMany() 
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             InitialUsers(modelBuilder);
         }

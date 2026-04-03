@@ -1,0 +1,3 @@
+PumpId,current_date,rul_warning_months,rul_critical_months,rul_warning_years,rul_critical_years,replacement_date_warning,replacement_date_critical,limiting_param_warning,limiting_param_critical,OperatingHours
+1,2024-07-22 21:00:00+00:00,34,37,2.83,3.08,2027-05-08 21:00:00+00:00,2027-08-06 21:00:00+00:00,ImpuritiesPct,ImpuritiesPct,6989.0
+2,2024-07-22 21:00:00+00:00,30,33,2.5,2.75,2027-01-08 21:00:00+00:00,2027-04-08 21:00:00+00:00,ImpuritiesPct,ImpuritiesPct,8021.0
