@@ -61,11 +61,9 @@ export class OilPage {
         this.oils.set(data);        
         this.filterBySearch();
         this.loading.set(false);
-        console.log('Масла загружены:', data);
-      },
+              },
       error: (err) => {
-        console.error(' Ошибка загрузки:', err);
-        this.loading.set(false);
+                this.loading.set(false);
       }
     });
   }

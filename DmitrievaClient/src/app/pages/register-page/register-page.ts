@@ -44,7 +44,6 @@ export class RegisterPage {
         }
       });
     } else {
-      console.log('Ошибка валидации формы');
-    }
+          }
   }
 }

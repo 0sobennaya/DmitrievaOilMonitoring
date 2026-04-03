@@ -73,11 +73,9 @@ export class AuthService{
     register(payload: {login: string, password: string, fullName: string, role: UserRole}) {
   return this.http.post<{login: string, role: UserRole, fullName: string}>(`${this.baseApiUrl}register`, payload).pipe(
     tap(val => {
-      console.log('Регистрация успешна:', val);
-    }),
+          }),
     catchError(error => {
-      console.error('Ошибка регистрации:', error);
-      return throwError(() => error);
+            return throwError(() => error);
     })
   );
 }

@@ -39,8 +39,7 @@ export class LoginPage {
       }
     });
   } else {
-    console.log('Ошибка авторизации');
-  }
+      }
 }
 
 }

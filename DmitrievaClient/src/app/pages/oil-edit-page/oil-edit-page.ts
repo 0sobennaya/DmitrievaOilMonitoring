@@ -42,8 +42,7 @@ export class OilEditPage implements OnInit {
       this.originalOil = JSON.parse(JSON.stringify(oil));
     },
     error: (err) => {
-      console.error('Ошибка загрузки:', err);
-    }
+          }
   });
   }
   startEditing() {
@@ -70,23 +69,20 @@ export class OilEditPage implements OnInit {
   saveOil() {
   const currentOil = this.oil();
   if (!currentOil || !currentOil.id || !this.isChanged()) {
-    console.warn('Ошибка: нет oil или id');
-    return;
+        return;
   }
 
   this.loading.set(true);
   
   this.oilsService.updateOil(currentOil).subscribe({
     next: () => {
-      console.log('Масло обновлено');
-      this.loading.set(false);
+            this.loading.set(false);
       this.isEditing.set(false);
       this.originalOil = JSON.parse(JSON.stringify(currentOil));
       this.isChanged.set(false);
     },
     error: (err) => {
-      console.error('Ошибка сохранения:', err);
-      this.loading.set(false);
+            this.loading.set(false);
     }
   });
   }
@@ -94,8 +90,7 @@ export class OilEditPage implements OnInit {
     const currentOil = this.oil();
     
     if (!currentOil|| !currentOil.id) {
-      console.warn('❌ Нет oil или id');
-      return;
+            return;
     }
 
     // Подтверждение удаления
@@ -106,16 +101,13 @@ export class OilEditPage implements OnInit {
     }
 
     this.loading.set(true);
-    console.log('🗑️ Удаляю насос ID:', currentOil.id);
-
-    this.oilsService.deleteOil(currentOil.id).subscribe({
+        this.oilsService.deleteOil(currentOil.id).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/oils']);
       },
       error: (err) => {
-        console.error('Ошибка удаления:', err);
-        this.loading.set(false);
+                this.loading.set(false);
       }
     });
   }

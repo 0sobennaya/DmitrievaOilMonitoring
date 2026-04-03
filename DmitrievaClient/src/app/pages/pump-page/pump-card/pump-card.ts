@@ -59,8 +59,7 @@ export class PumpCard implements OnInit {
   this.loadingOils.set(true);
   this.oilsService.getOils().subscribe({
     next: (response: any) => {
-      console.log('Загруженные масла:', response);
-      const oilsArray = Array.isArray(response) ? response : (response.data || []);
+            const oilsArray = Array.isArray(response) ? response : (response.data || []);
       
       // Фильтруем масла: только те, у которых нет насоса, или это текущее масло
       const filteredOils = (oilsArray as OilInterface[]).filter(oil =>
@@ -71,8 +70,7 @@ export class PumpCard implements OnInit {
       this.loadingOils.set(false);
     },
     error: (err) => {
-      console.error('Ошибка загрузки масел:', err);
-      this.oils.set([]);
+            this.oils.set([]);
       this.loadingOils.set(false);
     },
   });
@@ -103,8 +101,7 @@ export class PumpCard implements OnInit {
       this.pump = updatedPump;
       this.pumpChanged.emit(this.pump);
     } else {
-      console.warn('Форма невалидна!');
-    }
+          }
   }
 
   getError(fieldName: string): string | null {

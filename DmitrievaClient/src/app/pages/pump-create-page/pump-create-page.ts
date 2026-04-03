@@ -37,8 +37,7 @@ export class PumpCreatePage implements OnInit {
   ngOnInit() {
     this.initForm();
     this.loadOils();                     
-    console.log('📝 Страница создания насоса загружена');
-  }
+      }
   loadOils() {
     this.oilsService.getOils().subscribe({
       next: (response: any) => {
@@ -47,8 +46,7 @@ export class PumpCreatePage implements OnInit {
         this.oils = allOils.filter(oil => !oil.pumpUsage?.pumpId);
       },
       error: err => {
-        console.error('Ошибка загрузки масел', err);
-        this.oils = [];
+                this.oils = [];
       }
     });
   }
@@ -87,8 +85,7 @@ export class PumpCreatePage implements OnInit {
     });
 
     if (!this.pumpForm.valid) {
-      console.warn('Форма невалидна!');
-      return;
+            return;
     }
 
     const pump = this.pumpForm.value as PumpInterface;
@@ -100,8 +97,7 @@ export class PumpCreatePage implements OnInit {
         this.router.navigate(['/pumps']);
       },
       error: (err) => {
-        console.error('Ошибка создания:', err);
-        this.loading.set(false);
+                this.loading.set(false);
       }
     });
   }

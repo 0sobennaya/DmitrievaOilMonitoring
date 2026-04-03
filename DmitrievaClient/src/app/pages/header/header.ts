@@ -31,6 +31,14 @@ export class Header{
     return this.authService.getRole() || 'User';
   }
 
+  get translate_role(): string {
+    const roleMap: { [key: string]: string } = {
+      'Laborant': 'Лаборант',
+      'Engineer': 'Инженер', 
+      'Technologist': 'Технолог'
+    };
+    return roleMap[this.role] || 'Пользователь';
+  }
   onLogout(): void {
     this.authService.logOut();
     this.router.navigate(['/login']);

@@ -22,9 +22,7 @@ export class StatsService {
       })
     }
   ).pipe(
-    tap(data => console.log('Ответ:', data)),
     catchError(error => {
-      console.error('Ошибка:', error);
       return throwError(() => error);
     })
   );
@@ -33,9 +31,7 @@ export class StatsService {
 
 getCriticalWear() {
   return this.http.get<CriticalWear[]>(`${this.baseApiUrl}Oils/critical-wear`).pipe(
-    tap(data => console.log('Критический износ:', data)),
     catchError(error => {
-      console.error('Ошибка загрузки критического износа:', error);
       return throwError(() => error);
     })
   );

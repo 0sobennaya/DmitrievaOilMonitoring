@@ -36,8 +36,7 @@ export class OilCreatePage implements OnInit  {
 
   ngOnInit() {
     this.initForm();
-    console.log('📝 Страница создания насоса загружена');
-  }
+      }
   initForm() {
     this.oilForm = this.fb.group({
       tan: [0, [Validators.required, Validators.min(0), Validators.max(5)]],
@@ -64,8 +63,7 @@ export class OilCreatePage implements OnInit  {
   });
 
   if (!this.oilForm.valid) {
-    console.warn('Форма масла невалидна!');
-    return;
+        return;
   }
 
   const oil = this.oilForm.value as OilUpdateRequest;
@@ -77,8 +75,7 @@ export class OilCreatePage implements OnInit  {
       this.router.navigate(['/oils']);
     },
     error: (err) => {
-      console.error('Ошибка создания масла:', err);
-      this.loading.set(false);
+            this.loading.set(false);
     }
   });
   }

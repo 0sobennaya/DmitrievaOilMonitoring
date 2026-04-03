@@ -66,11 +66,9 @@ export class PumpPage {
         this.pumps.set(value);
         this.filterBySearch();
         this.loading.set(false);
-        console.log('Насосы загружены:', value);
-      },
+              },
       error: (err) => {
-        console.error('Ошибка при получении данных:', err);
-        this.loading.set(false);
+                this.loading.set(false);
       }
     });
     

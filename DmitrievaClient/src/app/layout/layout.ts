@@ -11,14 +11,9 @@ import { AuthService } from '../data/services/auth.service';
 })
 export class Layout implements OnInit {
   constructor(public auth: AuthService) {
-    // сразу при инициализации подгружаем всё из куки
-    console.log('Role:', this.auth.getRole());
-    console.log('Username:', this.auth.username);
-    console.log('Token exists:', !!this.auth.token);
-  }
+              }
 
   ngOnInit() {
-    // или вызови isAuth геттер
     const isLoggedIn = this.auth.isAuth;
   }
 }

@@ -51,8 +51,7 @@ export class PumpEditPage implements OnInit {
         this.originalPump = JSON.parse(JSON.stringify(pump));
       },
       error: (err) => {
-        console.error('Ошибка загрузки:', err);
-      }
+              }
     });
   }
 
@@ -79,23 +78,20 @@ export class PumpEditPage implements OnInit {
     const currentPump = this.pump();
 
     if (!currentPump || !currentPump.id || !this.isChanged()) {
-      console.warn('Ошибка: нет pump или id');
-      return;
+            return;
     }
 
     this.loading.set(true);
 
     this.pumpsService.updatePump(currentPump).subscribe({
       next: () => {
-        console.log('Насос обновлён');
-        this.loading.set(false);
+                this.loading.set(false);
         this.isEditing.set(false);
         this.originalPump = JSON.parse(JSON.stringify(currentPump));
         this.isChanged.set(false);
       },
       error: (err) => {
-        console.error('Ошибка сохранения:', err);
-        this.loading.set(false);
+                this.loading.set(false);
       }
     });
   }
@@ -104,8 +100,7 @@ export class PumpEditPage implements OnInit {
     const currentPump = this.pump();
 
     if (!currentPump || !currentPump.id) {
-      console.warn('❌ Нет pump или id');
-      return;
+            return;
     }
 
     const confirmed = confirm(`Вы уверены, что хотите удалить насос №${currentPump.id}?`);
@@ -115,16 +110,13 @@ export class PumpEditPage implements OnInit {
     }
 
     this.loading.set(true);
-    console.log('🗑️ Удаляю насос ID:', currentPump.id);
-
-    this.pumpsService.deletePump(currentPump.id).subscribe({
+        this.pumpsService.deletePump(currentPump.id).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/pumps']);
       },
       error: (err) => {
-        console.error('Ошибка удаления:', err);
-        this.loading.set(false);
+                this.loading.set(false);
       }
     });
   }

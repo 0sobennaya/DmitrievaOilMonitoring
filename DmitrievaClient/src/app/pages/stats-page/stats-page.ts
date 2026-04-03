@@ -204,7 +204,7 @@ export class StatsPage implements OnInit, AfterViewInit {
 
   private checkAndInitChart() {
     if (!this.pumpChartRef?.nativeElement) {
-      console.warn('Canvas элемент еще не готов, пытаемся снова...');
+      console.warn('Элемент еще не готов, загрузка...');
       setTimeout(() => this.checkAndInitChart(), 200);
       return;
     }
@@ -241,7 +241,6 @@ export class StatsPage implements OnInit, AfterViewInit {
 
     const ctx = this.pumpChartRef.nativeElement.getContext('2d');
     if (!ctx) {
-      console.error('Canvas context не получен');
       return;
     }
 
@@ -378,7 +377,6 @@ export class StatsPage implements OnInit, AfterViewInit {
 
   const ctx = this.pumpDetailsChartRef?.nativeElement?.getContext('2d');
   if (!ctx) {
-    console.warn('Canvas для деталей не готов');
     return;
   }
 

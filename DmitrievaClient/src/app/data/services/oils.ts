@@ -10,8 +10,7 @@ export class OilsService {
   baseApiUrl = 'https://localhost:7232/api/';
 
   getOils() {
-    console.log('Запрос на:', `${this.baseApiUrl}Oils`);
-    return this.http.get<OilResponse[]>(`${this.baseApiUrl}Oils`);
+        return this.http.get<OilResponse[]>(`${this.baseApiUrl}Oils`);
   }
 
   getOilById(id: number){

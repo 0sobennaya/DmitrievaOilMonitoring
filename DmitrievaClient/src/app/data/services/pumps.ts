@@ -10,8 +10,7 @@ export class PumpsService {
   baseApiUrl = 'https://localhost:7232/api/';
 
   getPumps() {
-    console.log('Запрос на:', `${this.baseApiUrl}Pumps`);
-    return this.http.get<PumpInterface[]>(`${this.baseApiUrl}Pumps`);
+        return this.http.get<PumpInterface[]>(`${this.baseApiUrl}Pumps`);
   }
 
   getPumpById(id: number){
