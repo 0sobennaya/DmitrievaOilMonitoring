@@ -33,7 +33,9 @@ export class OilCard implements OnInit {
       id: [this.oil?.id],
       tan: [this.oil?.tan, [Validators.required, Validators.min(0), Validators.max(5)]],
       viscosity: [this.oil?.viscosity, [Validators.required, Validators.min(3.8), Validators.max(26.1)]],
-      waterContent: [this.oil?.waterContent, [Validators.required, Validators.min(0), Validators.max(100)]],
+      waterContent: [this.oil?.waterContent, [Validators.required, Validators.min(0), Validators.max(3)]],
+      impuritiesPct : [this.oil?.impuritiesPct, [Validators.required, Validators.min(0), Validators.max(3)]],
+      flashPointC : [this.oil?.flashPointC, [Validators.required, Validators.min(150), Validators.max(230)]],
       installationDate: [this.oil?.installationDate, [Validators.required]],
       operatingHours: [this.oil?.operatingHours, [Validators.required, Validators.min(0)]],
       startStopCycles: [this.oil?.startStopCycles, [Validators.required, Validators.min(0)]]

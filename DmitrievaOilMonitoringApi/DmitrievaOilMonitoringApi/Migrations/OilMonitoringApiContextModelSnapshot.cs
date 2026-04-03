@@ -30,6 +30,12 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("FlashPointC")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ImpuritiesPct")
+                        .HasColumnType("double precision");
+
                     b.Property<DateTime>("InstallationDate")
                         .HasColumnType("timestamp with time zone");
 

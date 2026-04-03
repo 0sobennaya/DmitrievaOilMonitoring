@@ -7,16 +7,24 @@ namespace DmitrievaOilMonitoringApi.DTO
     {
 
         [Required(ErrorMessage = "TAN обязательно")]
-        [Range(0, 5.0, ErrorMessage = "TAN допускается в диапазоне 0.0 - 5.0")]
+        [Range(0, 5.0, ErrorMessage = "TAN допускается в диапазоне 0.0 - 5.0 мг КОН/г")]
         public double TAN { get; set; }
 
         [Required(ErrorMessage = "Вязкость обязательна")]
-        [Range(3.8, 26.1, ErrorMessage = "Вязкость допускается в диапазоне 3.8 - 26.1")]
+        [Range(3.8, 26.1, ErrorMessage = "Вязкость допускается в диапазоне 3.8 - 26.1 Ст")]
         public double Viscosity { get; set; }
 
         [Required(ErrorMessage = "Содержание воды обязательно")]
-        [Range(0, 100.0, ErrorMessage = "Содержание воды допускается в диапазоне от 0 до 100%")]
+        [Range(0, 3.0, ErrorMessage = "Содержание воды допускается в диапазоне от 0 до 3%")]
         public double WaterContent { get; set; }
+
+        [Required(ErrorMessage = "Содержание механических примесей обязательно")]
+        [Range(0, 3.0, ErrorMessage = "Содержание механических примесей допускается в диапазоне от 0 до 3%")]
+        public  double ImpuritiesPct { get; set; }
+
+        [Required(ErrorMessage = "Температура вспышки в открытом тигле обязательна")]
+        [Range(150,230, ErrorMessage = "Температура вспышки в открытом тигле допускается в диапазоне от 230 до 150 °С")]
+        public double FlashPointC { get; set; } 
 
         // Опциональное для Update, обязательное для Create
         public DateTime? InstallationDate { get; set; }
@@ -32,16 +40,24 @@ namespace DmitrievaOilMonitoringApi.DTO
     public class OilUpdateDTO
     {
         [Required(ErrorMessage = "TAN обязательно")]
-        [Range(0, 5.0, ErrorMessage = "TAN допускается в диапазоне 0.0 - 5.0")]
+        [Range(0, 5.0, ErrorMessage = "TAN допускается в диапазоне 0.0 - 5.0 мг КОН/г")]
         public double TAN { get; set; }
 
         [Required(ErrorMessage = "Вязкость обязательна")]
-        [Range(3.8, 26.1, ErrorMessage = "Вязкость допускается в диапазоне 3.8 - 26.1")]
+        [Range(3.8, 26.1, ErrorMessage = "Вязкость допускается в диапазоне 3.8 - 26.1 Ст")]
         public double Viscosity { get; set; }
 
         [Required(ErrorMessage = "Содержание воды обязательно")]
-        [Range(0, 100.0, ErrorMessage = "Содержание воды допускается в диапазоне от 0 до 100%")]
+        [Range(0, 3.0, ErrorMessage = "Содержание воды допускается в диапазоне от 0 до 3%")]
         public double WaterContent { get; set; }
+
+        [Required(ErrorMessage = "Содержание механических примесей обязательно")]
+        [Range(0, 3.0, ErrorMessage = "Содержание механических примесей допускается в диапазоне от 0 до 3%")]
+        public double ImpuritiesPct { get; set; }
+
+        [Required(ErrorMessage = "Температура вспышки в открытом тигле обязательна")]
+        [Range(150, 230, ErrorMessage = "Температура вспышки в открытом тигле допускается в диапазоне от 230 до 150 °С")]
+        public double FlashPointC { get; set; }
 
         [Required(ErrorMessage = "Часы эксплуатации обязательны")]
         [Range(0, double.MaxValue, ErrorMessage = "Часы эксплуатации должны быть положительным числом")]

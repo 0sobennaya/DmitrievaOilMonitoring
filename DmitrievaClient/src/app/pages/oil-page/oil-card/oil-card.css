@@ -160,7 +160,15 @@
   line-height: 1.2;
   white-space: nowrap;
 }
-
+.big-value {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0; /* немного отступ сверху/снизу */
+  min-height: 64px; /* гарантирует минимальную высоту, чтобы не сжималось */
+  box-sizing: border-box;
+}
 .big-value .value {
   font-size: 18px;
   font-weight: 700;
@@ -180,7 +188,7 @@
   font-size: 10px;
   color: var(--gray-color);
   font-weight: 500;
-  margin-top: -8px;
+  margin-top: -20px;
 }
 
 

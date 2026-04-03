@@ -3,6 +3,8 @@ export interface OilUpdateRequest {
   tan: number;
   viscosity: number;
   waterContent: number;
+  impuritiesPct : number;
+  flashPointC : number;
   installationDate: string;
   operatingHours: number;
   startStopCycles: number;
@@ -24,6 +26,8 @@ export interface OilInterface {
   tan: number;
   viscosity: number;
   waterContent: number;
+  impuritiesPct : number;
+  flashPointC : number;
   installationDate: string;
   operatingHours: number;
   startStopCycles: number;

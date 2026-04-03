@@ -62,7 +62,7 @@
             } @else {
               <span class="value">{{ oil.viscosity }}</span>
             }
-            <span class="unit">cSt</span>
+            <span class="unit">Ст</span>
           </div>
         </div>
 
@@ -140,14 +140,44 @@
       <!-- Вычисленные параметры (большие значения) -->
       <div class="card-big-values">
         <div class="big-value">
-          <span class="title">ИЗНОС</span>
-          <span class="value">{{ (oil.wear || 0).toFixed(2) }}</span>
-          <span class="big-unit">мг/л</span>
+          <span class="param-title">МЕХ. ПРИМЕСИ</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="impuritiesPct"
+                  type="number"
+                  step="1"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('impuritiesPct')?.invalid && oilForm.get('impuritiesPct')?.touched"
+                  (change)="updateOil()">
+                @if (getError('impuritiesPct')) {
+                  <span class="error-message">{{ getError('impuritiesPct') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.impuritiesPct }}</span>
+            }
+            <span class="unit">%</span>
         </div>
         <div class="big-value">
-          <span class="title">ЗАГРЯЗНЕНИЕ</span>
-          <span class="value">{{ (oil.contamination || 0).toFixed(2) }}</span>
-          <span class="big-unit">мкм</span>
+          <span class="param-title">ТЕМП. ВСПЫШКИ</span>
+            @if (isEditing) {
+              <div class="input-with-error">
+                <input 
+                  formControlName="flashPointC"
+                  type="number"
+                  step="1"
+                  class="edit-input"
+                  [class.input-error]="oilForm.get('flashPointC')?.invalid && oilForm.get('flashPointC')?.touched"
+                  (change)="updateOil()">
+                @if (getError('flashPointC')) {
+                  <span class="error-message">{{ getError('flashPointC') }}</span>
+                }
+              </div>
+            } @else {
+              <span class="value">{{ oil.flashPointC }}</span>
+            }
+            <span class="unit">°С</span>
         </div>
         <div class="big-value">
           <span class="title">СОСТОЯНИЕ</span>

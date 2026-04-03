@@ -23,6 +23,8 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 TAN = oil.TAN,
                 Viscosity = oil.Viscosity,
                 WaterContent = oil.WaterContent,
+                ImpuritiesPct = oil.ImpuritiesPct,
+                FlashPointC = oil.FlashPointC,
                 InstallationDate = oil.InstallationDate,
                 OperatingHours = oil.OperatingHours,
                 StartStopCycles = oil.StartStopCycles
@@ -63,6 +65,8 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 TAN = oilDTO.TAN,
                 Viscosity = oilDTO.Viscosity,
                 WaterContent = oilDTO.WaterContent,
+                ImpuritiesPct = oilDTO.ImpuritiesPct,
+                FlashPointC = oilDTO.FlashPointC,
                 InstallationDate = oilDTO.InstallationDate ?? DateTime.Now,
                 OperatingHours = oilDTO.OperatingHours,
                 StartStopCycles = oilDTO.StartStopCycles
@@ -113,6 +117,8 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 oil.TAN = oilDTO.TAN;
                 oil.Viscosity = oilDTO.Viscosity;
                 oil.WaterContent = oilDTO.WaterContent;
+                oil.ImpuritiesPct = oilDTO.ImpuritiesPct;
+                oil.FlashPointC = oilDTO.FlashPointC;
                 oil.OperatingHours = oilDTO.OperatingHours;
                 oil.StartStopCycles = oilDTO.StartStopCycles;
                 await _context.SaveChangesAsync();

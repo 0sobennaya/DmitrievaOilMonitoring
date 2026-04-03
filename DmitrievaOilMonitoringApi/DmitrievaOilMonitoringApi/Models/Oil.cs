@@ -7,6 +7,8 @@
         public double TAN { get; set; }
         public double Viscosity { get; set; }
         public double WaterContent { get; set; }
+        public double ImpuritiesPct { get; set; }
+        public double FlashPointC { get; set; }
         public DateTime InstallationDate { get; set; }
         public double OperatingHours { get; set; }
         public int StartStopCycles { get; set; }
@@ -42,7 +44,7 @@
             else if (wear > 15 || contamination > 5 || WaterContent > 1.5 || GetWear(currentTemperature) > 5 || GetContamination(currentTemperature) > 2)
                 return "Предельное";
             else if (wear > 10 || contamination > 3 || WaterContent > 1 || GetWear(currentTemperature) > 2 || GetContamination(currentTemperature) > 1)
-                return "Удовлетворительное";
+                return "Допустимое";
             else 
                 return "Нормальное";
         }

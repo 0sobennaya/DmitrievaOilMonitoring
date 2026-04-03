@@ -35,6 +35,8 @@ export class OilsService {
     tan: response.tan,
     viscosity: response.viscosity,
     waterContent: response.waterContent,
+    impuritiesPct : response.impuritiesPct,
+    flashPointC : response.flashPointC,
     installationDate: response.installationDate,
     operatingHours: response.operatingHours,
     startStopCycles: response.startStopCycles,

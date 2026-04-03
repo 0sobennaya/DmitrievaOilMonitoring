@@ -45,7 +45,7 @@ export class StatsPage implements OnInit, AfterViewInit {
   readonly COLOR_MAP = {
     'Критическое': { main: '#ff4444', light: 'rgba(255, 68, 68, 0.6)' },
     'Предельное': { main: '#ff9800', light: 'rgba(255, 152, 0, 0.6)' },
-    'Удовлетворительное': { main: '#d9ff00ff', light: 'rgba(217, 255, 0, 0.6)' },
+    'Допустимое': { main: '#d9ff00ff', light: 'rgba(217, 255, 0, 0.6)' },
     'Нормальное': { main: '#00d4aa', light: 'rgba(0, 212, 170, 0.6)' }
   };
 
@@ -53,7 +53,7 @@ export class StatsPage implements OnInit, AfterViewInit {
   readonly CRITICALITY_ORDER = {
     'Критическое': 0,
     'Предельное': 1,
-    'Удовлетворительное': 2,
+    'Допустимое': 2,
     'Нормальное': 3
   };
 
@@ -336,7 +336,7 @@ export class StatsPage implements OnInit, AfterViewInit {
   const statusColors = [
     this.COLOR_MAP['Критическое'].main,
     this.COLOR_MAP['Предельное'].main,
-    this.COLOR_MAP['Удовлетворительное'].main,
+    this.COLOR_MAP['Допустимое'].main,
     this.COLOR_MAP['Нормальное'].main
   ];
 
@@ -425,7 +425,7 @@ export class StatsPage implements OnInit, AfterViewInit {
     const statusMap: Record<string, number> = {
       'Критическое': 0,
       'Предельное': 33,
-      'Удовлетворительное': 66,
+      'Допустимое': 66,
       'Нормальное': 100
     };
     return statusMap[status] || 50;
