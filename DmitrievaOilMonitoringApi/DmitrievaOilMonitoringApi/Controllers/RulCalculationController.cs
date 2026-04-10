@@ -1,4 +1,5 @@
 ﻿using DmitrievaOilMonitoringApi.Data.Services;
+using DmitrievaOilMonitoringApi.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,5 +29,14 @@ namespace DmitrievaOilMonitoringApi.Controllers
 
             return Ok("Расчет RUL успешно запущен и завершен.");
         }
+
+        [HttpGet("forecast-points")] //  GET api/rulcalculation/forecast-points?pumpId=X
+        [Authorize] 
+        public async Task<ActionResult<IEnumerable<OilForecastPointDTO>>> GetForecastPoints(int? pumpId = null)
+        {
+            var points = await _rulCalculationService.GetForecastPointsAsync(pumpId);
+            return Ok(points);
+        }
     }
+
 }

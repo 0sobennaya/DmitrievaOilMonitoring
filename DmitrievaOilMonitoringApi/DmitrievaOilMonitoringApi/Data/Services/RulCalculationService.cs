@@ -1,21 +1,27 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DmitrievaOilMonitoringApi.Data;
+using DmitrievaOilMonitoringApi.DTO;
+using Microsoft.EntityFrameworkCore; 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text;
 
 namespace DmitrievaOilMonitoringApi.Data.Services
 {
+
     public class RulCalculationService : IRulCalculationService
     {
         private readonly ILogger<RulCalculationService> _logger;
         private readonly string _pythonScriptPath;
         private readonly string _pythonInterpreterPath;
-
-        public RulCalculationService(ILogger<RulCalculationService> logger, IConfiguration configuration)
+        private readonly OilMonitoringApiContext _context;
+        public RulCalculationService(
+            ILogger<RulCalculationService> logger,
+            IConfiguration configuration,
+            OilMonitoringApiContext context) // Добавляем context в конструктор
         {
             _logger = logger;
-
-            // Получаем пути из конфигурации
+            _context = context;
             _pythonScriptPath = configuration["PythonScripts:RulScriptPath"] ?? throw new InvalidOperationException("Конфигурация PythonScripts:RulScriptPath не найдена.");
             _pythonInterpreterPath = configuration["PythonScripts:InterpreterPath"] ?? throw new InvalidOperationException("Конфигурация PythonScripts:InterpreterPath не найдена.");
         }
@@ -76,5 +82,34 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                 return false;
             }
         }
+        public async Task<IEnumerable<OilForecastPointDTO>> GetForecastPointsAsync(int? pumpId = null)
+        {
+            _logger.LogDebug("Получение точек прогноза для PumpId={PumpId}.", pumpId);
+
+            var query = _context.OilForecastPoints.AsNoTracking();
+
+            if (pumpId.HasValue)
+            {
+                query = query.Where(p => p.PumpId == pumpId.Value);
+            }
+            var points = await query.OrderBy(p => p.PumpId).ThenBy(p => p.Month).ToListAsync();
+
+            // Преобразуем в DTO
+            var dto = points.Select(p => new OilForecastPointDTO
+            {
+                PumpId = p.PumpId,
+                MeasurementDate = p.MeasurementDate,
+                Month = p.Month,
+                TAN = p.TAN,
+                WaterContentPct = p.WaterContentPct,
+                ImpuritiesPct = p.ImpuritiesPct,
+                FlashPointC = p.FlashPointC,
+                MeanVibration = p.MeanVibration,
+                MeanOilTemp = p.MeanOilTemp,
+                OperatingHours = p.OperatingHours
+            }).ToList();
+
+            return dto;
+        }
     }
-}
+    }
