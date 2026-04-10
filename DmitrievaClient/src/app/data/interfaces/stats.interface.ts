@@ -12,12 +12,13 @@ export interface OilStatistics {
   averageContamination: number;
 }
 export interface PumpHealth {
+  lastMeasurementDate: Date;
   id: number;
   mode: number;
   startStopCycles: number;
   operatingHours: number;
   oilStatus: string;
-}
+  }
 export interface PumpDetails {
   
     pumpId: number,
@@ -38,4 +39,18 @@ export interface OilForecastPointDTO {
   meanVibration: number;
   meanOilTemp: number;
   operatingHours: number;
+}
+export interface FactPointDTO {
+  month: number;
+  tan: number;
+  waterContentPct: number;
+  impuritiesPct: number;
+  flashPointC: number;
+  operatingHours: number;
+}
+
+export interface RulForecastWithFactDTO {
+  pumpId: number;
+  factPoints: FactPointDTO[];
+  forecastPoints: OilForecastPointDTO[];
 }

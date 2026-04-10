@@ -37,6 +37,14 @@ namespace DmitrievaOilMonitoringApi.Controllers
             var points = await _rulCalculationService.GetForecastPointsAsync(pumpId);
             return Ok(points);
         }
+
+        [HttpGet("forecast-with-fact")]
+        [Authorize]
+        public async Task<ActionResult<RulForecastWithFactDTO>> GetForecastWithFact(int pumpId)
+        {
+            var data = await _rulCalculationService.GetForecastWithFactAsync(pumpId);
+            return Ok(data);
+        }
     }
 
 }

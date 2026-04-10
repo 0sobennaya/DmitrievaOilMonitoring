@@ -7,6 +7,6 @@ namespace DmitrievaOilMonitoringApi.Data.Services
     {
         Task<bool> RunRulCalculationAsync();
         Task<IEnumerable<OilForecastPointDTO>> GetForecastPointsAsync(int? pumpId = null);
-
+        Task<RulForecastWithFactDTO> GetForecastWithFactAsync(int pumpId);
     }
 }

@@ -111,5 +111,63 @@ namespace DmitrievaOilMonitoringApi.Data.Services
 
             return dto;
         }
+        public async Task<RulForecastWithFactDTO> GetForecastWithFactAsync(int pumpId)
+        {
+            // 1. Загружаем фактические данные из OilConditionRecords
+            var factRecords = await _context.OilConditionRecords
+                .AsNoTracking()
+                .Where(r => r.PumpId == pumpId)
+                .OrderBy(r => r.MeasurementDate)
+                .ToListAsync();
+
+            if (!factRecords.Any())
+            {
+                return new RulForecastWithFactDTO { PumpId = pumpId };
+            }
+
+            // 2. Получаем последнюю дату (текущий момент)
+            var lastDate = factRecords.Last().MeasurementDate;
+
+            // 3. Преобразуем в "месяцы от текущего момента" (отрицательные)
+            var factPoints = factRecords.Select(r =>
+            {
+                var monthsAgo = -(int)((lastDate - r.MeasurementDate).TotalDays / 30);
+                return new FactPointDTO
+                {
+                    Month = monthsAgo,
+                    TAN = r.TAN,
+                    WaterContentPct = r.WaterContentPct,
+                    ImpuritiesPct = r.ImpuritiesPct,
+                    FlashPointC = r.FlashPointC,
+                    OperatingHours = r.OperatingHours
+                };
+            }).ToList();
+
+            // 4. Загружаем прогнозные точки
+            var forecastPoints = await _context.OilForecastPoints
+                .AsNoTracking()
+                .Where(p => p.PumpId == pumpId)
+                .OrderBy(p => p.Month)
+                .ToListAsync();
+
+            return new RulForecastWithFactDTO
+            {
+                PumpId = pumpId,
+                FactPoints = factPoints,
+                ForecastPoints = forecastPoints.Select(p => new OilForecastPointDTO
+                {
+                    PumpId = p.PumpId,
+                    MeasurementDate = p.MeasurementDate,
+                    Month = p.Month,
+                    TAN = p.TAN,
+                    WaterContentPct = p.WaterContentPct,
+                    ImpuritiesPct = p.ImpuritiesPct,
+                    FlashPointC = p.FlashPointC,
+                    MeanVibration = p.MeanVibration,
+                    MeanOilTemp = p.MeanOilTemp,
+                    OperatingHours = p.OperatingHours
+                }).ToList()
+            };
+        }
     }
     }

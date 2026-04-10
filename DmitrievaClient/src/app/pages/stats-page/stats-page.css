@@ -1,4 +1,11 @@
 /* stats-page.css */
+.rul-chart {
+  display: block;
+  height: 500px;
+}
+.rul-chart canvas {
+  height: 100% !important;
+}
 .stats-container {
   padding: 30px;
   max-width: 1400px;
@@ -81,7 +88,7 @@
   min-height: 400px;
 }
 
-canvas {
+.chart-wrapper canvas {
   max-height: 400px;
 }
 

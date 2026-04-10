@@ -7,47 +7,24 @@ import { AuthService } from '../../data/services/auth.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
 import { RulChartSimpleComponent } from "./rul-forecast-chart/rul-forecast-chart";
-
-import {
-  Chart as ChartJS,
-  ArcElement,
-  LineElement,
-  BarElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  RadialLinearScale,
-  TimeScale,
-  Tooltip,
-  Legend,
-  Filler,
-  BubbleController,
-  DoughnutController,
-  LineController,
-  BarController,
-  RadarController,
-  PieController,
-  Chart
-} from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, BarElement, BarController, DoughnutController, RadialLinearScale, RadarController, LineElement, Filler, LineController} from 'chart.js';
+import { Chart } from 'chart.js';
 
 ChartJS.register(
   ArcElement,
-  LineElement,
+  DoughnutController,
+  BarController,
   BarElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  RadialLinearScale,
-  TimeScale,
   Tooltip,
   Legend,
-  Filler,
-  BubbleController,
-  DoughnutController,
-  LineController, // ← КРИТИЧЕСКИ ВАЖНО для type: 'line'
-  BarController,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  RadialLinearScale,
   RadarController,
-  PieController
+  LineElement,
+  Filler,
+  LineController
 );
 
 @Component({
