@@ -226,6 +226,58 @@ namespace DmitrievaOilMonitoringApi.Migrations
                     b.ToTable("Pumps");
                 });
 
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.RulResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CurrentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LimitingParamCritical")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LimitingParamWarning")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<long>("OperatingHoursAtCalculation")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PumpId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ReplacementDateCritical")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ReplacementDateWarning")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RulCriticalMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("RulCriticalYears")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("RulWarningMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("RulWarningYears")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PumpId");
+
+                    b.ToTable("RulResults");
+                });
+
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilConditionRecord", b =>
                 {
                     b.HasOne("DmitrievaOilMonitoringApi.Models.Pump", null)
@@ -242,6 +294,14 @@ namespace DmitrievaOilMonitoringApi.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Oil");
+                });
+
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.RulResult", b =>
+                {
+                    b.HasOne("DmitrievaOilMonitoringApi.Models.Pump", null)
+                        .WithMany()
+                        .HasForeignKey("PumpId")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

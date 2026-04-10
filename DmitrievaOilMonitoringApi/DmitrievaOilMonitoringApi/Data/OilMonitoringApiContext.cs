@@ -11,6 +11,7 @@ namespace DmitrievaOilMonitoringApi.Data
         public DbSet<Pump> Pumps { get; set; }
         public DbSet<Person> People { get; set; }
         public DbSet<OilConditionRecord> OilConditionRecords { get; set; }
+        public DbSet<RulResult> RulResults { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Pump>()
@@ -25,6 +26,10 @@ namespace DmitrievaOilMonitoringApi.Data
             modelBuilder.Entity<OilConditionRecord>() 
                 .HasOne<Pump>()
                 .WithMany() 
+                .OnDelete(DeleteBehavior.ClientSetNull);
+            modelBuilder.Entity<RulResult>()
+                .HasOne<Pump>()
+                .WithMany()
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             InitialUsers(modelBuilder);

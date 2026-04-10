@@ -259,6 +259,44 @@ df_forecast = pd.DataFrame(forecast_data)
 df_forecast.to_csv("oil_forecast_60months.csv", index=False, encoding='utf-8')
 print("✅ oil_forecast_60months.csv")
 
+# СОХРАНЕНИЕ в БД
+cursor = conn.cursor() # Создаем курсор для выполнения SQL
+
+try:
+    # Подготовим SQL-запрос для вставки
+    insert_query = """
+        INSERT INTO "RulResults" 
+        ("PumpId", "CurrentDate", "RulWarningMonths", "RulCriticalMonths", 
+         "RulWarningYears", "RulCriticalYears", "ReplacementDateWarning", 
+         "ReplacementDateCritical", "LimitingParamWarning", "LimitingParamCritical", "OperatingHoursAtCalculation")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    """
+
+    for result in rul_results:
+        cursor.execute(insert_query, (
+            int(result['PumpId']),                     # numpy.int64 → int
+            result['current_date'],                    # datetime — OK
+            int(result['rul_warning_months']),         # numpy.int64 → int
+            int(result['rul_critical_months']),        # numpy.int64 → int
+            float(result['rul_warning_years']),        # numpy.float64 → float
+            float(result['rul_critical_years']),       # numpy.float64 → float
+            result['replacement_date_warning'],        # datetime — OK
+            result['replacement_date_critical'],       # datetime — OK
+            str(result['limiting_param_warning']),     # str — OK
+            str(result['limiting_param_critical']),    # str — OK
+            int(result['OperatingHours'])              # numpy.int64 → int
+        ))
+    conn.commit() # Подтверждаем все вставки одной транзакцией
+    print(f"✅ Успешно добавлено {len(rul_results)} записей в таблицу 'RulResults'.")
+
+except psycopg2.Error as e:
+    # Если произошла ошибка, откатываем транзакцию
+    print(f"❌ Ошибка при вставке данных в базу данных: {e}")
+    conn.rollback()
+finally:
+    # Закрываем курсор
+    cursor.close()
+
 # ===============================================================
 # 8. ВИЗУАЛИЗАЦИЯ (ФАКТ + ПРОГНОЗ + ВЕРТИКАЛЬНЫЕ ЛИНИИ)
 # ===============================================================
