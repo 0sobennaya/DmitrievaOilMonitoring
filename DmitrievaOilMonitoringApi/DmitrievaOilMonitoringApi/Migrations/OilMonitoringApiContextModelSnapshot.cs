@@ -110,6 +110,51 @@ namespace DmitrievaOilMonitoringApi.Migrations
                     b.ToTable("OilConditionRecords");
                 });
 
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilForecastPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("FlashPointC")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ImpuritiesPct")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("MeanOilTemp")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("MeanVibration")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("MeasurementDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("OperatingHours")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PumpId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("TAN")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("WaterContentPct")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PumpId");
+
+                    b.ToTable("OilForecastPoints");
+                });
+
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.Person", b =>
                 {
                     b.Property<int>("Id")
@@ -279,6 +324,14 @@ namespace DmitrievaOilMonitoringApi.Migrations
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilConditionRecord", b =>
+                {
+                    b.HasOne("DmitrievaOilMonitoringApi.Models.Pump", null)
+                        .WithMany()
+                        .HasForeignKey("PumpId")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilForecastPoint", b =>
                 {
                     b.HasOne("DmitrievaOilMonitoringApi.Models.Pump", null)
                         .WithMany()

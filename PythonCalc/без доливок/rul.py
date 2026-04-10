@@ -297,6 +297,41 @@ finally:
     # Закрываем курсор
     cursor.close()
 
+cursor = conn.cursor()
+try:
+    # --- 1. Удаляем старые записи из OilForecastPoints для всех насосов ---
+    cursor.execute('DELETE FROM "OilForecastPoints";')
+    print("✅ Очищена таблица OilForecastPoints")
+
+    # --- 2. Вставляем новые данные ---
+    insert_forecast_query = """
+        INSERT INTO "OilForecastPoints"
+        ("PumpId", "MeasurementDate", "Month", "TAN", "WaterContentPct",
+         "ImpuritiesPct", "FlashPointC", "MeanVibration", "MeanOilTemp", "OperatingHours")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    """   
+    for point in forecast_data:
+        cursor.execute(insert_forecast_query, (
+            int(point['PumpId']),
+            point['MeasurementDate'],          # datetime → OK
+            int(point['month']),               # numpy.int64 → int
+            float(point['TAN']),               # numpy.float64 → float
+            float(point['WaterContentPct']),
+            float(point['ImpuritiesPct']),
+            float(point['FlashPointC']),
+            float(point['MeanVibration']),
+            float(point['MeanOilTemp']),
+            int(point['OperatingHours'])       # numpy.int64 → int
+        ))
+
+    conn.commit()
+    print(f"✅ Успешно добавлено {len(forecast_data)} точек прогноза в таблицу 'OilForecastPoints'.")
+
+except Exception as e:
+    print(f"❌ Ошибка при вставке в OilForecastPoints: {e}")
+    conn.rollback()
+finally:
+    cursor.close()
 # ===============================================================
 # 8. ВИЗУАЛИЗАЦИЯ (ФАКТ + ПРОГНОЗ + ВЕРТИКАЛЬНЫЕ ЛИНИИ)
 # ===============================================================
