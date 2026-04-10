@@ -423,7 +423,7 @@ for r in rul_results:
     print(f"    RUL to WARNING: {r['rul_warning_months']} mon. ({r['rul_warning_years']} years)")
     print(f"    Replace (plan): {r['replacement_date_warning'].strftime('%Y-%m')}")
  
-    print(f"    RUL до CRITICAL: {r['rul_critical_months']} mon. ({r['rul_critical_years']} years)")
+    print(f"    RUL to CRITICAL: {r['rul_critical_months']} mon. ({r['rul_critical_years']} years)")
     print(f"    Replace (deadline): {r['replacement_date_critical'].strftime('%Y-%m')}")
 
     print(f"    Limiting parameter: {r['limiting_param_warning']}")

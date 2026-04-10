@@ -1,11 +1,11 @@
-import { Component, Input, AfterViewInit, ElementRef, ViewChild, inject } from '@angular/core';
+// File: src/app/rul-forecast-chart/rul-forecast-chart.ts
+import { Component, AfterViewInit, ElementRef, ViewChild, inject, Input } from '@angular/core';
 import { Chart, Plugin, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { StatsService } from '../../../data/services/stats.service';
 import { RulForecastWithFactDTO } from '../../../data/interfaces/stats.interface';
 import { firstValueFrom } from 'rxjs';
 
-// Регистрируем всё
 Chart.register(...registerables);
 
 @Component({
@@ -15,147 +15,169 @@ Chart.register(...registerables);
 })
 export class RulChartSimpleComponent implements AfterViewInit {
   @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
-  @Input() pumpId!: number;
-
   private chart: Chart | null = null;
   private statsService = inject(StatsService);
+  private pumpIds: number[] = [];
 
-  ngAfterViewInit() {
-    this.loadAndRender();
+  @Input() set pumpIdsList(ids: number[]) {
+    this.pumpIds = ids;
+    if (ids.length > 0) this.loadAndRender();
   }
 
+  ngAfterViewInit() {}
+
   private async loadAndRender() {
+    if (this.pumpIds.length === 0) return;
+
     try {
-      const data: RulForecastWithFactDTO = await firstValueFrom(
-        this.statsService.getForecastWithFact(this.pumpId)
+      // 1. Загружаем данные для всех насосов
+      const dataPromises = this.pumpIds.map(id =>
+        firstValueFrom(this.statsService.getForecastWithFact(id))
       );
+      const allData: RulForecastWithFactDTO[] = await Promise.all(dataPromises);
 
-      if (!data || (data.factPoints.length === 0 && data.forecastPoints.length === 0)) {
-        console.warn(`No data for pumpId=${this.pumpId}`);
-        return;
-      }
+      const validData = allData.filter(d => d.factPoints.length > 0 || d.forecastPoints.length > 0);
+      if (validData.length === 0) return;
 
-      // 🔑 ШАГ 1: Найдём базовую дату (дата для month=0)
-      let baseDate: Date | null = null;
-
-      // Сначала ищем точку с month=0 в factPoints
-      const zeroPoint = data.factPoints.find(p => p.month === 0);
-      if (zeroPoint) {
-        // Если в factPoints есть measurementDate — используем его
-        if (zeroPoint.measurementDate) {
-          baseDate = new Date(zeroPoint.measurementDate);
+      // 2. Рассчитываем самую раннюю плановую дату (для общей линии)
+      const plannedDates: Date[] = [];
+      for (const data of validData) {
+        let baseDate: Date | null = null;
+        if (data.forecastPoints.length > 0 && data.forecastPoints[0].measurementDate) {
+          baseDate = new Date(data.forecastPoints[0].measurementDate);
         } else {
-          // Иначе — используем forecastPoints[0].measurementDate
-          baseDate = data.forecastPoints.length > 0 ? new Date(data.forecastPoints[0].measurementDate) : new Date();
+          baseDate = new Date();
         }
-      } else {
-        // Если нет точки с month=0, берём первую точку прогноза
-        baseDate = data.forecastPoints.length > 0 ? new Date(data.forecastPoints[0].measurementDate) : new Date();
+        if (!baseDate || isNaN(baseDate.getTime())) continue;
+
+        const minMonth = Math.min(
+          ...data.factPoints.map(f => f.month),
+          ...data.forecastPoints.map(p => p.month)
+        );
+        const firstFactDate = new Date(baseDate);
+        firstFactDate.setMonth(baseDate.getMonth() + minMonth);
+        const plannedDate = new Date(firstFactDate);
+        plannedDate.setFullYear(plannedDate.getFullYear() + 5);
+        plannedDates.push(plannedDate);
       }
 
-      // Защита от Invalid Date
-      if (!baseDate || isNaN(baseDate.getTime())) {
-        console.error('Invalid baseDate, using current date');
-        baseDate = new Date();
-      }
+      const earliestPlannedDate = plannedDates.length > 0
+        ? new Date(Math.min(...plannedDates.map(d => d.getTime())))
+        : new Date();
 
-      // 🔑 ШАГ 2: Генерируем все даты
-      const allPoints = [
-        ...data.factPoints.map(f => ({
-          ...f,
-          isFact: true,
-          date: new Date(baseDate),
-        })),
-        ...data.forecastPoints.map(p => ({
-          ...p,
-          isFact: false,
-          date: new Date(baseDate),
-        }))
-      ].map(point => {
-        // Вычисляем дату: baseDate + point.month месяцев
-        const d = new Date(point.date);
-        d.setMonth(d.getMonth() + point.month);
-        return {
-          ...point,
-          date: d
-        };
-      }).sort((a, b) => a.month - b.month); // сортировка по месяцу
+      // 3. Генерируем datasets
+      const datasets: any[] = [];
+      const plugins: Plugin<'line'>[] = [];
 
-      // 🔑 ШАГ 3: Подготавливаем данные для Chart.js
-      const months = allPoints.map(p => p.month);
-      const tanValues = allPoints.map(p => p.tan);
-
-      // Ограничения
       const WARNING = 1.3;
       const CRITICAL = 1.5;
 
-      // Находим RUL (только по прогнозу)
-      const findRul = (values: number[], limit: number) => {
-        for (let i = 0; i < values.length; i++) {
-          if (values[i] >= limit && !allPoints[i].isFact) return allPoints[i].month;
+      for (const data of validData) {
+        // 🔑 Базовая дата
+        let baseDate: Date | null = null;
+        if (data.forecastPoints.length > 0 && data.forecastPoints[0].measurementDate) {
+          baseDate = new Date(data.forecastPoints[0].measurementDate);
+        } else {
+          console.warn(`No forecast date for pump ${data.pumpId}, using now`);
+          baseDate = new Date();
         }
-        return 60;
-      };
-      const rulWarningMonth = findRul(tanValues, WARNING);
-      const rulCriticalMonth = findRul(tanValues, CRITICAL);
+        if (!baseDate || isNaN(baseDate.getTime())) continue;
 
-      // Вычисляем даты для вертикальных линий
-      const rulWarningDate = new Date(baseDate);
-      rulWarningDate.setMonth(rulWarningDate.getMonth() + rulWarningMonth);
-      const rulCriticalDate = new Date(baseDate);
-      rulCriticalDate.setMonth(rulCriticalDate.getMonth() + rulCriticalMonth);
+        // 🔑 Первая дата масла
+        const minMonth = Math.min(
+          ...data.factPoints.map(f => f.month),
+          ...data.forecastPoints.map(p => p.month)
+        );
+        const firstFactDate = new Date(baseDate);
+        firstFactDate.setMonth(baseDate.getMonth() + minMonth);
 
-      // Кастомный плагин
-      const customPlugin: Plugin<'line'> = {
-        id: 'rul-elements',
-        afterDraw: (chart) => {
-          const ctx = chart.ctx;
-          const xAxis = chart.scales['x'];
-          const yAxis = chart.scales['y'];
+        // 🔑 RUL = first_fact_date + 5 лет (для этого насоса)
+        const rulDate = new Date(firstFactDate);
+        rulDate.setFullYear(rulDate.getFullYear() + 5);
 
-          // Зона риска
-          const yWarn = yAxis.getPixelForValue(WARNING);
-          const yCrit = yAxis.getPixelForValue(CRITICAL);
-          ctx.fillStyle = 'rgba(255, 152, 0, 0.2)';
-          ctx.fillRect(xAxis.left, Math.min(yWarn, yCrit), xAxis.width, Math.abs(yWarn - yCrit));
+        // 🔑 Данные
+        const factChartData = data.factPoints.map(f => {
+          const d = new Date(baseDate);
+          d.setMonth(d.getMonth() + f.month);
+          return [d.toISOString(), f.tan] as [string, number];
+        });
 
-          // Вертикальные линии
-          const xWarn = xAxis.getPixelForValue(rulWarningDate.getTime());
-          const xCrit = xAxis.getPixelForValue(rulCriticalDate.getTime());
-          if (xWarn !== undefined && xWarn !== null && !isNaN(xWarn)) {
-            ctx.strokeStyle = '#ff9800';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(xWarn, yAxis.top);
-            ctx.lineTo(xWarn, yAxis.bottom);
-            ctx.stroke();
+        const forecastChartData = data.forecastPoints.map(p => {
+          const d = new Date(baseDate);
+          d.setMonth(d.getMonth() + p.month);
+          return [d.toISOString(), p.tan] as [string, number];
+        });
+
+        // Датасеты
+        datasets.push({
+          label: `Факт — Насос ${data.pumpId}`,
+          data: factChartData,
+          borderColor: this.getColor(data.pumpId),
+          backgroundColor: 'transparent',
+          borderWidth: 3,
+          borderDash: [],
+          fill: false,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: this.getColor(data.pumpId),
+          showLine: true
+        });
+        datasets.push({
+          label: `Прогноз — Насос ${data.pumpId}`,
+          data: forecastChartData,
+          borderColor: this.getColor(data.pumpId),
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+          showLine: true
+        });
+
+        // 🔑 Плагин: вертикальная линия RUL для этого насоса (оранжевая)
+        const plugin: Plugin<'line'> = {
+          id: `rul-${data.pumpId}`,
+          afterDraw: (chart) => {
+            const ctx = chart.ctx;
+            const xAxis = chart.scales['x'];
+            const yAxis = chart.scales['y'];
+
+            // Вертикальная линия RUL
+            const xRul = xAxis.getPixelForValue(rulDate.getTime());
+            if (xRul !== undefined && xRul !== null && !isNaN(xRul)) {
+              ctx.strokeStyle = this.getColor(data.pumpId);
+              ctx.lineWidth = 2;
+              ctx.setLineDash([5, 5]);
+              ctx.beginPath();
+              ctx.moveTo(xRul, yAxis.top);
+              ctx.lineTo(xRul, yAxis.bottom);
+              ctx.stroke();
+            }
           }
-          if (xCrit !== undefined && xCrit !== null && !isNaN(xCrit)) {
-            ctx.strokeStyle = '#ff4444';
-            ctx.setLineDash([3, 3]);
-            ctx.beginPath();
-            ctx.moveTo(xCrit, yAxis.top);
-            ctx.lineTo(xCrit, yAxis.bottom);
-            ctx.stroke();
-          }
+        };
+        plugins.push(plugin);
+      }
 
-          // Горизонтальные линии
-          ctx.strokeStyle = '#ff9800';
-          ctx.setLineDash([]);
-          ctx.beginPath();
-          ctx.moveTo(xAxis.left, yWarn);
-          ctx.lineTo(xAxis.right, yWarn);
-          ctx.stroke();
+      // 🔑 Добавляем ОДИН датасет для плановой замены (белая пунктирная линия)
+      datasets.push({
+        label: 'Плановая замена',
+        data: [
+          [earliestPlannedDate.toISOString(), 0],   // низ
+          [earliestPlannedDate.toISOString(), 1.5]  // верх
+        ],
+        borderColor: '#03ff18',
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: [8, 4],
+        fill: false,
+        tension: 0.4,
+        pointRadius: 0,
+        showLine: true,
+        stepped: false
+      });
 
-          ctx.strokeStyle = '#ff4444';
-          ctx.beginPath();
-          ctx.moveTo(xAxis.left, yCrit);
-          ctx.lineTo(xAxis.right, yCrit);
-          ctx.stroke();
-        }
-      };
-
+      // 4. Рисуем график
       const ctx = this.canvasRef.nativeElement.getContext('2d');
       if (!ctx) return;
 
@@ -163,48 +185,19 @@ export class RulChartSimpleComponent implements AfterViewInit {
 
       this.chart = new Chart(ctx, {
         type: 'line',
-        data: {
-          datasets: [
-            // Факт (сплошная линия)
-            {
-              label: 'Факт',
-              data: data.factPoints.map(f => [
-                new Date(baseDate).setMonth(baseDate.getMonth() + f.month),
-                f.tan
-              ]).map(([ts, y]) => [new Date(ts).toISOString(), y]) as any,
-              borderColor: '#32b8c6',
-              backgroundColor: 'transparent',
-              borderWidth: 3,
-              borderDash: [],
-              fill: false,
-              tension: 0.4,
-              pointRadius: 4,
-              pointBackgroundColor: '#32b8c6',
-              showLine: true
-            },
-            // Прогноз (пунктирная линия)
-            {
-              label: 'Прогноз',
-              data: data.forecastPoints.map(p => [
-                new Date(baseDate).setMonth(baseDate.getMonth() + p.month),
-                p.tan
-              ]).map(([ts, y]) => [new Date(ts).toISOString(), y]) as any,
-              borderColor: '#32b8c6',
-              backgroundColor: 'transparent',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              fill: false,
-              tension: 0.4,
-              pointRadius: 0,
-              showLine: true
-            }
-          ]
-        },
+        data: { datasets },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: true, position: 'top' as const },
+            legend: {
+              display: true,
+              position: 'top' as const,
+              labels: {
+                color: '#ffffff',
+                font: { size: 13 }
+              }
+            },
             tooltip: {
               callbacks: {
                 label: (context) => `${context.dataset.label}: ${context.parsed.y?.toFixed(2) ?? '—'}`
@@ -216,7 +209,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
               type: 'time',
               time: {
                 unit: 'year',
-                displayFormats: { year: 'yyyy' } // ← Это делает "2025", "2026", ...
+                displayFormats: { year: 'yyyy' }
               },
               title: { display: true, text: 'Год', color: '#32b8c6' },
               ticks: { color: '#aaa', maxTicksLimit: 10 },
@@ -224,8 +217,8 @@ export class RulChartSimpleComponent implements AfterViewInit {
             },
             y: {
               title: { display: true, text: 'TAN (mg KOH/g)', color: '#32b8c6', font: { weight: 'bold' } },
-              min: 0,
-              max: 1.5, // Сокращено до CRITICAL
+              min: -0,
+              max: 1.5,
               grid: { color: 'rgba(255,255,255,0.1)' },
               ticks: {
                 color: '#fff',
@@ -238,11 +231,19 @@ export class RulChartSimpleComponent implements AfterViewInit {
             }
           }
         },
-        plugins: [customPlugin]
+        plugins: [...plugins]
       });
 
     } catch (error) {
       console.error('Ошибка при построении графика:', error);
     }
+  }
+
+  private getColor(id: number): string {
+    const colors = [
+      '#32b8c6', '#ff9800', '#ff4444', '#00d4aa', '#a855f7',
+      '#2196f3', '#4caf50', '#f44336', '#9c27b0', '#ffc107'
+    ];
+    return colors[id % colors.length];
   }
 }

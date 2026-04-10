@@ -41,6 +41,7 @@ export interface OilForecastPointDTO {
   operatingHours: number;
 }
 export interface FactPointDTO {
+  measurementDate: any;
   month: number;
   tan: number;
   waterContentPct: number;

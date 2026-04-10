@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, signal, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { StatsService } from '../../data/services/stats.service';
@@ -6,9 +6,9 @@ import { OilStatistics, CriticalWear, PumpHealth, PumpDetails } from '../../data
 import { AuthService } from '../../data/services/auth.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
-import { RulChartSimpleComponent } from "./rul-forecast-chart/rul-forecast-chart";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, BarElement, BarController, DoughnutController, RadialLinearScale, RadarController, LineElement, Filler, LineController} from 'chart.js';
 import { Chart } from 'chart.js';
+import { RulChartSimpleComponent } from "./rul-forecast-chart/rul-forecast-chart";
 
 ChartJS.register(
   ArcElement,
@@ -60,6 +60,8 @@ export class StatsPage implements OnInit, AfterViewInit {
   statistics = signal<OilStatistics | null>(null);
   criticalWear = signal<CriticalWear[]>([]);
   pumpsHealth = signal<PumpHealth[]>([]);
+
+   pumpIdsList = computed(() => this.pumpsHealth().map(p => p.id));
 
   // Цветовая палитра для всех статусов (от критичного к нормальному)
   readonly COLOR_MAP = {
