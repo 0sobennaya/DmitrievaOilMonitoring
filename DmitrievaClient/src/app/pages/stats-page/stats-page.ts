@@ -3,29 +3,57 @@ import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { StatsService } from '../../data/services/stats.service';
 import { OilStatistics, CriticalWear, PumpHealth, PumpDetails } from '../../data/interfaces/stats.interface';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, BarElement, BarController, DoughnutController, RadialLinearScale, RadarController, LineElement, Filler } from 'chart.js';
-import { Chart } from 'chart.js';
+import { AuthService } from '../../data/services/auth.service';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { catchError, tap, throwError } from 'rxjs';
+import { RulChartSimpleComponent } from "./rul-forecast-chart/rul-forecast-chart";
+
+import {
+  Chart as ChartJS,
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  BubbleController,
+  DoughnutController,
+  LineController,
+  BarController,
+  RadarController,
+  PieController,
+  Chart
+} from 'chart.js';
 
 ChartJS.register(
   ArcElement,
-  DoughnutController,
-  BarController,
+  LineElement,
   BarElement,
-  Tooltip,
-  Legend,
+  PointElement,
   CategoryScale,
   LinearScale,
-  PointElement,
   RadialLinearScale,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  BubbleController,
+  DoughnutController,
+  LineController, // ← КРИТИЧЕСКИ ВАЖНО для type: 'line'
+  BarController,
   RadarController,
-  LineElement,
-  Filler   
+  PieController
 );
 
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, RulChartSimpleComponent],
   templateUrl: './stats-page.html',
   styleUrl: './stats-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,6 +61,21 @@ ChartJS.register(
 export class StatsPage implements OnInit, AfterViewInit {
   private statsService = inject(StatsService);
   private cdr = inject(ChangeDetectorRef);
+  private baseApiUrl = 'https://localhost:7232/api/';
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
+
+  runRulCalculation() {
+    const url = `${this.baseApiUrl}RulCalculation/run-calculation`;
+    const token = this.authService.token;
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<{ message: string }>(url, {}, { headers }).pipe(
+      tap(response => console.log('Расчёт RUL запущен:', response.message)),
+      );
+  }
 
   @ViewChild('pumpChart') pumpChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('pumpDetailsChart') pumpDetailsChartRef!: ElementRef<HTMLCanvasElement>;
@@ -154,10 +197,23 @@ export class StatsPage implements OnInit, AfterViewInit {
   private pumpDetailsChart: Chart | null = null;
 
   ngOnInit() {
-    this.loadStatistics();
-    this.loadPumpsHealth();
-    this.loadPumpDetails();
-  }
+  this.loadStatistics();
+  this.loadPumpsHealth();
+  this.loadPumpDetails();
+  // Сначала запускаем расчёт
+  this.runRulCalculation().subscribe({
+    next: () => {
+      // После успешного запуска — загружаем статистику и данные насосов
+      this.loadStatistics();
+      this.loadPumpsHealth();
+      this.loadPumpDetails();
+    },
+    error: () => {
+      console.warn('Расчёт не запустился, но продолжаем загрузку данных...');
+      
+    }
+  });
+}
 
   ngAfterViewInit() {
     this.cdr.detectChanges();
@@ -170,7 +226,7 @@ export class StatsPage implements OnInit, AfterViewInit {
         this.statistics.set(data);
         this.updateStatusChart(data);
       },
-      error: (error) => console.error('Ошибка статистики:', error)
+      error: (error) => console.error('Ошибка статистики:', error?.error || error?.message || error)
     });
 
     this.statsService.getCriticalWear().subscribe({

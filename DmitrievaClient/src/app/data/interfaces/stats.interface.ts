@@ -27,3 +27,15 @@ export interface PumpDetails {
     oilStatus: string;
   
 }
+export interface OilForecastPointDTO {
+  pumpId: number;
+  measurementDate: string; 
+  month: number;
+  tan: number;
+  waterContentPct: number;
+  impuritiesPct: number;
+  flashPointC: number;
+  meanVibration: number;
+  meanOilTemp: number;
+  operatingHours: number;
+}

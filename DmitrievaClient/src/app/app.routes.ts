@@ -17,7 +17,7 @@ export const routes: Routes = [
     component: Layout, 
     canActivate: [canActivateAuth],   // общая проверка логина
     children: [
-      { path: '', component: PumpPage },
+      { path: '', component: OilPage },
       { path: 'pumps', component: PumpPage },
       { path: 'oils', component: OilPage },
       { path: 'stats', component: StatsPage },

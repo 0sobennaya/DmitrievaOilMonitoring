@@ -2,6 +2,19 @@
 <div class="stats-container">
   <h1 class="stats-title">Статистика</h1>
 
+<!-- Прогноз RUL для выбранного насоса -->
+<!-- Прогноз RUL -->
+<div class="pump-details-section">
+  <h2>Прогноз RUL для насоса</h2>
+  <div class="chart-wrapper">
+    @if (pumpsHealth() && pumpsHealth().length > 0) {
+      <app-rul-chart-simple [pumpId]="pumpsHealth()[0].id"></app-rul-chart-simple>
+    } @else {
+      <div class="empty-state"><p>Нет данных для отображения.</p></div>
+    }
+  </div>
+</div>
+
   @if (statistics(); as stats) {
     <!-- KPI карточки -->
     <div class="metrics-grid">

@@ -1,12 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, tap, throwError } from 'rxjs';
-import { CriticalWear, OilStatistics, PumpDetails, PumpHealth } from '../interfaces/stats.interface';
+import { catchError, map, of, tap, throwError } from 'rxjs';
+import { CriticalWear, OilForecastPointDTO, OilStatistics, PumpDetails, PumpHealth } from '../interfaces/stats.interface';
 import { AuthService } from './auth.service';
 @Injectable({
   providedIn: 'root'
 })
 export class StatsService {
+  runRulCalculation() {
+    throw new Error('Method not implemented.');
+  }
     
   private authService = inject(AuthService);
   private http = inject(HttpClient);
@@ -44,5 +47,25 @@ getPumpsHealth(){
 getPumpDetails(){
   return this.http.get<PumpDetails[]>(`${this.baseApiUrl}Pumps/pump-vibration-and-oil-contanimation`)
 }
+ getForecastPoints(pumpId?: number) {
+    const url = pumpId
+      ? `${this.baseApiUrl}RulCalculation/forecast-points?pumpId=${pumpId}`
+      : `${this.baseApiUrl}RulCalculation/forecast-points`;
+
+    const token = this.authService.token;
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<OilForecastPointDTO[]>(url, { headers }).pipe(
+      // Используем map, чтобы вернуть пустой массив, если пришёл null или undefined
+      map(response => response || []),
+      catchError(error => {
+        console.error(`Ошибка загрузки точек прогноза для PumpId ${pumpId}:`, error);
+        // Возвращаем пустой массив в случае ошибки
+        return of([]);
+      })
+    );
+  }
 
 }

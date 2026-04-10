@@ -27,7 +27,7 @@ namespace DmitrievaOilMonitoringApi.Controllers
                 return BadRequest("Ошибка при выполнении расчета RUL. Подробности смотрите в логах.");
             }
 
-            return Ok("Расчет RUL успешно запущен и завершен.");
+            return Ok();
         }
 
         [HttpGet("forecast-points")] //  GET api/rulcalculation/forecast-points?pumpId=X
