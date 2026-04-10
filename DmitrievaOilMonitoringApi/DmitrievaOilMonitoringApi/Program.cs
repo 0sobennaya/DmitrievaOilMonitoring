@@ -38,6 +38,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<IOilsService, OilsService>();
 builder.Services.AddScoped<IPumpsService, PumpsService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IRulCalculationService, RulCalculationService>();
 
 
 builder.Services.AddEndpointsApiExplorer();
