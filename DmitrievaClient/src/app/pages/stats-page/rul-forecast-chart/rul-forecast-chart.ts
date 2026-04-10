@@ -1,8 +1,12 @@
 import { Component, Input, AfterViewInit, ElementRef, ViewChild, inject } from '@angular/core';
-import { Chart, Plugin } from 'chart.js';
+import { Chart, Plugin, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns';
 import { StatsService } from '../../../data/services/stats.service';
-import { OilForecastPointDTO, RulForecastWithFactDTO } from '../../../data/interfaces/stats.interface';
+import { RulForecastWithFactDTO } from '../../../data/interfaces/stats.interface';
 import { firstValueFrom } from 'rxjs';
+
+// Регистрируем всё
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-rul-chart-simple',
@@ -12,14 +16,12 @@ import { firstValueFrom } from 'rxjs';
 export class RulChartSimpleComponent implements AfterViewInit {
   @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @Input() pumpId!: number;
-  @Input() lastMeasurementDate!: Date;
 
   private chart: Chart | null = null;
   private statsService = inject(StatsService);
 
   ngAfterViewInit() {
     this.loadAndRender();
-    const lastDate = this.lastMeasurementDate || new Date();
   }
 
   private async loadAndRender() {
@@ -27,45 +29,83 @@ export class RulChartSimpleComponent implements AfterViewInit {
       const data: RulForecastWithFactDTO = await firstValueFrom(
         this.statsService.getForecastWithFact(this.pumpId)
       );
+
       if (!data || (data.factPoints.length === 0 && data.forecastPoints.length === 0)) {
         console.warn(`No data for pumpId=${this.pumpId}`);
         return;
       }
 
-      // Сортируем по месяцу (обязательно!)
+      // 🔑 ШАГ 1: Найдём базовую дату (дата для month=0)
+      let baseDate: Date | null = null;
+
+      // Сначала ищем точку с month=0 в factPoints
+      const zeroPoint = data.factPoints.find(p => p.month === 0);
+      if (zeroPoint) {
+        // Если в factPoints есть measurementDate — используем его
+        if (zeroPoint.measurementDate) {
+          baseDate = new Date(zeroPoint.measurementDate);
+        } else {
+          // Иначе — используем forecastPoints[0].measurementDate
+          baseDate = data.forecastPoints.length > 0 ? new Date(data.forecastPoints[0].measurementDate) : new Date();
+        }
+      } else {
+        // Если нет точки с month=0, берём первую точку прогноза
+        baseDate = data.forecastPoints.length > 0 ? new Date(data.forecastPoints[0].measurementDate) : new Date();
+      }
+
+      // Защита от Invalid Date
+      if (!baseDate || isNaN(baseDate.getTime())) {
+        console.error('Invalid baseDate, using current date');
+        baseDate = new Date();
+      }
+
+      // 🔑 ШАГ 2: Генерируем все даты
       const allPoints = [
-        ...data.factPoints.map(f => ({ ...f, isFact: true })),
-        ...data.forecastPoints.map(p => ({ ...p, isFact: false }))
-      ].sort((a, b) => a.month - b.month); // сортировка по месяцу
+        ...data.factPoints.map(f => ({
+          ...f,
+          isFact: true,
+          date: new Date(baseDate),
+        })),
+        ...data.forecastPoints.map(p => ({
+          ...p,
+          isFact: false,
+          date: new Date(baseDate),
+        }))
+      ].map(point => {
+        // Вычисляем дату: baseDate + point.month месяцев
+        const d = new Date(point.date);
+        d.setMonth(d.getMonth() + point.month);
+        return {
+          ...point,
+          date: d
+        };
+      }).sort((a, b) => a.month - b.month); // сортировка по месяцу
 
-      // Разделяем данные для Chart.js
-      const factMonths = data.factPoints.map(p => p.month);
-      const factTanValues = data.factPoints.map(p => p.tan);
+      // 🔑 ШАГ 3: Подготавливаем данные для Chart.js
+      const months = allPoints.map(p => p.month);
+      const tanValues = allPoints.map(p => p.tan);
 
-      const forecastMonths = data.forecastPoints.map(p => p.month);
-      const forecastTanValues = data.forecastPoints.map(p => p.tan);
-
-      // Объединённые массивы для оси X (если нужно отображать всё на одном X)
-      const allMonths = allPoints.map(p => p.month);
-      const allTanValues = allPoints.map(p => p.tan);
-
-      // Ограничения (как в Python)
+      // Ограничения
       const WARNING = 1.3;
       const CRITICAL = 1.5;
 
       // Находим RUL (только по прогнозу)
-      const findRul = (values: number[], limit: number, points: {month: number, isFact: boolean}[]) => {
+      const findRul = (values: number[], limit: number) => {
         for (let i = 0; i < values.length; i++) {
-          if (values[i] >= limit && !points[i].isFact) return points[i].month; // ищем только по прогнозу
+          if (values[i] >= limit && !allPoints[i].isFact) return allPoints[i].month;
         }
         return 60;
       };
-      // Передаём forecastPoints, так как RUL ищется только среди прогноза
-      const forecastPointsForRul = data.forecastPoints.map(p => ({ month: p.month, isFact: false }));
-      const rulWarning = findRul(forecastTanValues, WARNING, forecastPointsForRul);
-      const rulCritical = findRul(forecastTanValues, CRITICAL, forecastPointsForRul);
+      const rulWarningMonth = findRul(tanValues, WARNING);
+      const rulCriticalMonth = findRul(tanValues, CRITICAL);
 
-      // Кастомный плагин для всех элементов
+      // Вычисляем даты для вертикальных линий
+      const rulWarningDate = new Date(baseDate);
+      rulWarningDate.setMonth(rulWarningDate.getMonth() + rulWarningMonth);
+      const rulCriticalDate = new Date(baseDate);
+      rulCriticalDate.setMonth(rulCriticalDate.getMonth() + rulCriticalMonth);
+
+      // Кастомный плагин
       const customPlugin: Plugin<'line'> = {
         id: 'rul-elements',
         afterDraw: (chart) => {
@@ -73,20 +113,16 @@ export class RulChartSimpleComponent implements AfterViewInit {
           const xAxis = chart.scales['x'];
           const yAxis = chart.scales['y'];
 
-          // 1. Зона риска (между WARNING и CRITICAL)
+          // Зона риска
           const yWarn = yAxis.getPixelForValue(WARNING);
           const yCrit = yAxis.getPixelForValue(CRITICAL);
           ctx.fillStyle = 'rgba(255, 152, 0, 0.2)';
-          ctx.fillRect(
-            xAxis.left,
-            Math.min(yWarn, yCrit),
-            xAxis.width,
-            Math.abs(yWarn - yCrit)
-          );
+          ctx.fillRect(xAxis.left, Math.min(yWarn, yCrit), xAxis.width, Math.abs(yWarn - yCrit));
 
-          // 2. Вертикальная линия RUL WARNING
-          const xWarn = xAxis.getPixelForValue(rulWarning);
-          if (xWarn !== undefined && xWarn !== null) { // Проверка на валидность
+          // Вертикальные линии
+          const xWarn = xAxis.getPixelForValue(rulWarningDate.getTime());
+          const xCrit = xAxis.getPixelForValue(rulCriticalDate.getTime());
+          if (xWarn !== undefined && xWarn !== null && !isNaN(xWarn)) {
             ctx.strokeStyle = '#ff9800';
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 5]);
@@ -95,10 +131,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
             ctx.lineTo(xWarn, yAxis.bottom);
             ctx.stroke();
           }
-
-          // 3. Вертикальная линия RUL CRITICAL
-          const xCrit = xAxis.getPixelForValue(rulCritical);
-          if (xCrit !== undefined && xCrit !== null) { // Проверка на валидность
+          if (xCrit !== undefined && xCrit !== null && !isNaN(xCrit)) {
             ctx.strokeStyle = '#ff4444';
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
@@ -107,7 +140,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
             ctx.stroke();
           }
 
-          // 4. Горизонтальная линия WARNING
+          // Горизонтальные линии
           ctx.strokeStyle = '#ff9800';
           ctx.setLineDash([]);
           ctx.beginPath();
@@ -115,7 +148,6 @@ export class RulChartSimpleComponent implements AfterViewInit {
           ctx.lineTo(xAxis.right, yWarn);
           ctx.stroke();
 
-          // 5. Горизонтальная линия CRITICAL
           ctx.strokeStyle = '#ff4444';
           ctx.beginPath();
           ctx.moveTo(xAxis.left, yCrit);
@@ -132,40 +164,39 @@ export class RulChartSimpleComponent implements AfterViewInit {
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: allMonths, // <-- Используем объединённые месяцы для оси X
           datasets: [
             // Факт (сплошная линия)
             {
               label: 'Факт',
-              data: factTanValues.map((value, index) => ({
-                x: factMonths[index],
-                y: value
-              })),
+              data: data.factPoints.map(f => [
+                new Date(baseDate).setMonth(baseDate.getMonth() + f.month),
+                f.tan
+              ]).map(([ts, y]) => [new Date(ts).toISOString(), y]) as any,
               borderColor: '#32b8c6',
               backgroundColor: 'transparent',
-              borderWidth: 3, // Сделаем линию чуть толще для факта
-              borderDash: [], // Сплошная линия
+              borderWidth: 3,
+              borderDash: [],
               fill: false,
               tension: 0.4,
-              pointRadius: 4, // Показываем точки факта
+              pointRadius: 4,
               pointBackgroundColor: '#32b8c6',
-              showLine: true // Рисуем линию
+              showLine: true
             },
             // Прогноз (пунктирная линия)
             {
               label: 'Прогноз',
-              data: forecastTanValues.map((value, index) => ({
-                x: forecastMonths[index],
-                y: value
-              })),
+              data: data.forecastPoints.map(p => [
+                new Date(baseDate).setMonth(baseDate.getMonth() + p.month),
+                p.tan
+              ]).map(([ts, y]) => [new Date(ts).toISOString(), y]) as any,
               borderColor: '#32b8c6',
               backgroundColor: 'transparent',
               borderWidth: 2,
-              borderDash: [5, 5], // Пунктир
+              borderDash: [5, 5],
               fill: false,
               tension: 0.4,
-              pointRadius: 0, // Скрыли точки прогноза
-              showLine: true // Рисуем линию
+              pointRadius: 0,
+              showLine: true
             }
           ]
         },
@@ -173,21 +204,8 @@ export class RulChartSimpleComponent implements AfterViewInit {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              display: true,
-              position: 'top' as const,
-              labels: {
-                color: '#fff',
-                font: { size: 13 }
-              }
-            },
+            legend: { display: true, position: 'top' as const },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.9)',
-              titleColor: '#32b8c6',
-              bodyColor: '#fff',
-              borderColor: '#32b8c6',
-              borderWidth: 1,
-              padding: 12,
               callbacks: {
                 label: (context) => `${context.dataset.label}: ${context.parsed.y?.toFixed(2) ?? '—'}`
               }
@@ -195,31 +213,27 @@ export class RulChartSimpleComponent implements AfterViewInit {
           },
           scales: {
             x: {
-              type: 'linear',
-              title: {
-                display: true,
-                text: 'Месяцы (от текущего замера)',
-                color: '#32b8c6',
-                font: { weight: 'bold' }
+              type: 'time',
+              time: {
+                unit: 'year',
+                displayFormats: { year: 'yyyy' } // ← Это делает "2025", "2026", ...
               },
-              min: -12, // Пример: отображаем фактические данные за последние 12 месяцев
-              max: 60,
-              grid: { color: 'rgba(255,255,255,0.1)' },
-              ticks: { color: '#aaa', font: { size: 12 } }
+              title: { display: true, text: 'Год', color: '#32b8c6' },
+              ticks: { color: '#aaa', maxTicksLimit: 10 },
+              grid: { color: 'rgba(255,255,255,0.1)' }
             },
             y: {
-              title: {
-                display: true,
-                text: 'TAN (mg KOH/g)',
-                color: '#32b8c6',
-                font: { weight: 'bold' }
-              },
+              title: { display: true, text: 'TAN (mg KOH/g)', color: '#32b8c6', font: { weight: 'bold' } },
               min: 0,
-              max: 1.5, // ← Сокращаем до критического значения (CRITICAL = 1.5)
+              max: 1.5, // Сокращено до CRITICAL
               grid: { color: 'rgba(255,255,255,0.1)' },
               ticks: {
                 color: '#fff',
-                font: { size: 12 }
+                font: { size: 12 },
+                callback: (value: number | string) => {
+                  const num = Number(value);
+                  return isNaN(num) ? '' : num.toFixed(1);
+                }
               }
             }
           }

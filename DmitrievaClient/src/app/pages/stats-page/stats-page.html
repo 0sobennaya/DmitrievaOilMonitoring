@@ -9,9 +9,7 @@
   <div class="chart-wrapper">
     @if (pumpsHealth() && pumpsHealth().length > 0) {
       <app-rul-chart-simple class="rul-chart" 
-      [pumpId]="pumpsHealth()[0].id"
-    [lastMeasurementDate]="pumpsHealth()[0].lastMeasurementDate">
-      </app-rul-chart-simple>
+      [pumpId]="pumpsHealth()[0].id"></app-rul-chart-simple>
   } @else {
       <div class="empty-state"><p>Нет данных для отображения.</p></div>
     }
