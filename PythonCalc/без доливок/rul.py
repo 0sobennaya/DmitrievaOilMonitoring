@@ -245,7 +245,14 @@ df_rul = pd.DataFrame(rul_results)
 df_rul['CurrentDate'] = df_rul['CurrentDate'].astype(str)
 df_rul['ReplacementDateWarning'] = df_rul['ReplacementDateWarning'].astype(str)
 df_rul['ReplacementDateCritical'] = df_rul['ReplacementDateCritical'].astype(str)
+df_rul['PumpId'] = df_rul['PumpId'].astype(int)
+df_rul['RulWarningMonths'] = df_rul['RulWarningMonths'].astype(int)
+df_rul['RulCriticalMonths'] = df_rul['RulCriticalMonths'].astype(int)
+df_rul['RulWarningYears'] = df_rul['RulWarningYears'].astype(float)
+df_rul['RulCriticalYears'] = df_rul['RulCriticalYears'].astype(float)
+df_rul['OperatingHoursAtCalculation'] = df_rul['OperatingHoursAtCalculation'].astype(int)
 
+rul_results = df_rul.to_dict('records')  # Теперь все значения — int/float/string
 df_rul.to_csv("rul_results_2030.csv", index=False, encoding='utf-8')
 print("rul_results_2030.csv")
 
@@ -258,11 +265,17 @@ cursor = conn.cursor() # Создаем курсор для выполнения
 
 try:
     # --- 1. Удаляем старые записи для каждого PumpId ---
-    cursor.execute("""
-    DELETE FROM "RulResults" WHERE "PumpId" = ANY(%s);
-    """, (list(set(r['PumpId'] for r in rul_results)),))
+    pump_ids = list(set(r['PumpId'] for r in rul_results))
+    if pump_ids:
+        cursor.execute("""
+        DELETE FROM "RulResults" WHERE "PumpId" = ANY(%s);
+        """, (pump_ids,))
+    else:
+        print("Нет насосов для удаления.")
 
-    print(f"OK: Удалены старые записи для {len(rul_results)} насосов.")
+    conn.commit()
+
+    print(f"OK: delete old rows for {len(rul_results)} pumps.")
 
     # --- 2. Вставляем новые ---
     insert_query = """
@@ -274,18 +287,25 @@ try:
     """
 
     for result in rul_results:
+        pump_id = int(result['PumpId'])
+        rul_warning_months = int(result['RulWarningMonths'])
+        rul_critical_months = int(result['RulCriticalMonths'])
+        rul_warning_years = float(result['RulWarningYears'])
+        rul_critical_years = float(result['RulCriticalYears'])
+        operating_hours = int(result['OperatingHoursAtCalculation'])
+
         cursor.execute(insert_query, (
-            int(result['PumpId']),                           # "PumpId"
-            result['CurrentDate'],                          # "CurrentDate"
-            int(result['RulWarningMonths']),               # "RulWarningMonths"
-            int(result['RulCriticalMonths']),              # "RulCriticalMonths"
-            float(result['RulWarningYears']),              # "RulWarningYears"
-            float(result['RulCriticalYears']),             # "RulCriticalYears"
-            result['ReplacementDateWarning'],              # "ReplacementDateWarning"
-            result['ReplacementDateCritical'],             # "ReplacementDateCritical"
-            str(result['LimitingParamWarning']),           # "LimitingParamWarning"
-            str(result['LimitingParamCritical']),          # "LimitingParamCritical"
-            int(result['OperatingHoursAtCalculation'])     # "OperatingHoursAtCalculation"
+            pump_id,
+            result['CurrentDate'],
+            rul_warning_months,
+            rul_critical_months,
+            rul_warning_years,
+            rul_critical_years,
+            result['ReplacementDateWarning'],
+            result['ReplacementDateCritical'],
+            str(result['LimitingParamWarning']),
+            str(result['LimitingParamCritical']),
+            operating_hours
         ))
     conn.commit() # Подтверждаем все вставки одной транзакцией
     print(f"OK: Added {len(rul_results)} records to 'RulResults'.")
@@ -428,11 +448,18 @@ for r in rul_results:
     print(f"{'='*70}")
     print(f"   Current operating hours: {r['OperatingHoursAtCalculation']:.0f} hours")
     print(f"   Last meashurement: {r['CurrentDate']}")
+    
+    def format_date(date_val):
+        if isinstance(date_val, str):
+            return date_val[:10]  # "2027-07-04T..."
+        else:
+            return date_val.strftime('%Y-%m')
+
     print(f"    RUL to WARNING: {r['RulWarningMonths']} mon. ({r['RulWarningYears']} years)")
-    print(f"    Replace (plan): {r['ReplacementDateWarning'].strftime('%Y-%m')}")
- 
+    print(f"    Replace (plan): {format_date(r['ReplacementDateWarning'])}")
+
     print(f"    RUL to CRITICAL: {r['RulCriticalMonths']} mon. ({r['RulCriticalYears']} years)")
-    print(f"    Replace (deadline): {r['ReplacementDateCritical'].strftime('%Y-%m')}")
+    print(f"    Replace (deadline): {format_date(r['ReplacementDateCritical'])}")
 
     print(f"    Limiting parameter: {r['LimitingParamWarning']}")
 

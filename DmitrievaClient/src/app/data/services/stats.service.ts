@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class StatsService {
+  authHeaders: HttpHeaders | Record<string, string | string[]> | undefined;
   runRulCalculation() {
     throw new Error('Method not implemented.');
   }
@@ -75,7 +76,7 @@ getPumpDetails(){
 }
 getRulResults() {
   const url = `${this.baseApiUrl}RulCalculation/rul-results-latest`;
-  return this.http.get<RulResult[]>(url);
+  return this.http.get<RulResult[]>(url, { headers: this.authHeaders });
 }
 
 }
