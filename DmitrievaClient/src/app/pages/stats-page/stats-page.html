@@ -2,17 +2,56 @@
 <div class="stats-container">
   <h1 class="stats-title">Статистика</h1>
 
-<div class="pump-details-section">
   <!-- Прогноз RUL для всех насосов -->
 <div class="pump-details-section">
   <h2>Прогноз RUL для всех насосов</h2>
+
+  <!-- TAN -->
   <div class="chart-wrapper">
-    @if (pumpsHealth() && pumpsHealth().length > 0) {
-      <!-- ЗАМЕНИТЬ ЭТУ СТРОКУ -->
-      <app-rul-chart-simple [pumpIdsList]="pumpIdsList()"></app-rul-chart-simple>
-    } @else {
-      <div class="empty-state"><p>Нет данных для отображения.</p></div>
-    }
+    <h3>TAN (мг КОН/г)</h3>
+    <app-rul-chart-simple
+      [pumpIdsList]="pumpIdsList()"
+      param="TAN"
+      [warning]="1.3"
+      [critical]="1.5"
+      unit="mg KOH/g">
+    </app-rul-chart-simple>
+  </div>
+
+  <!-- Water Content -->
+  <div class="chart-wrapper">
+    <h3>Массовая доля воды (%)</h3>
+    <app-rul-chart-simple
+      [pumpIdsList]="pumpIdsList()"
+      param="WaterContentPct"
+      [warning]="0.1"
+      [critical]="0.25"
+      unit="%">
+    </app-rul-chart-simple>
+  </div>
+
+  <!-- Impurities -->
+  <div class="chart-wrapper">
+    <h3>Массовая доля механических примесей (%)</h3>
+    <app-rul-chart-simple
+      [pumpIdsList]="pumpIdsList()"
+      param="ImpuritiesPct"
+      [warning]="1.3"
+      [critical]="1.5"
+      unit="%">
+    </app-rul-chart-simple>
+  </div>
+
+  <!-- Flash Point -->
+  <div class="chart-wrapper">
+    <h3>Температура вспышки в открытом тигле (°C)</h3>
+    <app-rul-chart-simple
+      [pumpIdsList]="pumpIdsList()"
+      param="FlashPointC"
+      [warning]="170"
+      [critical]="150"
+      unit="°C">
+    </app-rul-chart-simple>
   </div>
 </div>
 

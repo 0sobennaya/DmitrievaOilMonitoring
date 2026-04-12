@@ -70,7 +70,7 @@
 .chart-section h2,
 .critical-section h2,
 .pump-health-section h2,
-.pump-details-section h2 {
+.pump-details-section h2{
   font-size: 20px;
   color: var(--white-color);
   margin-bottom: 20px;
@@ -88,6 +88,15 @@
   min-height: 400px;
   display: flex;
   flex-direction: column;
+  margin: 10px
+}
+.chart-wrapper h3 {
+  font-size: 18px; /* чуть меньше h2 */
+  color: var(--white-color);
+  margin: 0 0 20px 0; /* отступ снизу как у h2 */
+  text-align: center; /* текст по центру */
+  align-self: center; /* центрирует h3 внутри .chart-wrapper (если он flex) */
+  width: 100%; /* чтобы текст был по центру всего контейнера */
 }
 
 .chart-wrapper canvas {
