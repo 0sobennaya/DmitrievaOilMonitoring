@@ -1,5 +1,6 @@
 ﻿using DmitrievaOilMonitoringApi.Data.Services;
 using DmitrievaOilMonitoringApi.DTO;
+using DmitrievaOilMonitoringApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +45,14 @@ namespace DmitrievaOilMonitoringApi.Controllers
         {
             var data = await _rulCalculationService.GetForecastWithFactAsync(pumpId);
             return Ok(data);
+        }
+
+        [HttpGet("rul-results-latest")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<RulResult>>> GetLatestRulResults()
+        {
+            var results = await _rulCalculationService.GetLatestRulResultsAsync();
+            return Ok(results);
         }
     }
 

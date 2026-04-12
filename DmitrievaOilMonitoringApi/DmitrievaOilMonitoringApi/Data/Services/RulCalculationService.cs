@@ -1,5 +1,6 @@
 ﻿using DmitrievaOilMonitoringApi.Data;
 using DmitrievaOilMonitoringApi.DTO;
+using DmitrievaOilMonitoringApi.Models;
 using Microsoft.EntityFrameworkCore; 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -168,6 +169,18 @@ namespace DmitrievaOilMonitoringApi.Data.Services
                     OperatingHours = p.OperatingHours
                 }).ToList()
             };
+        }
+        public async Task<IEnumerable<RulResult>> GetLatestRulResultsAsync()
+        {
+            _logger.LogDebug("Получение самых свежих результатов RUL для каждого насоса.");
+
+            var latestResults = await _context.RulResults
+                .AsNoTracking()
+                .GroupBy(r => r.PumpId)
+                .Select(g => g.OrderByDescending(r => r.CurrentDate).First()) 
+                .ToListAsync();
+
+            return latestResults;
         }
     }
     }

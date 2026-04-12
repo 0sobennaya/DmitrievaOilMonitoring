@@ -220,16 +220,16 @@ for PumpId in last_measurements['PumpId'].unique():
 
     rul_results.append({
         'PumpId': PumpId,
-        'current_date': last_row['MeasurementDate'],
-        'rul_warning_months': min_rul_warning,
-        'rul_critical_months': min_rul_critical,
-        'rul_warning_years': round(min_rul_warning / 12, 2),
-        'rul_critical_years': round(min_rul_critical / 12, 2),
-        'replacement_date_warning': replacement_date_warning,
-        'replacement_date_critical': replacement_date_critical,
-        'limiting_param_warning': limiting_param_warning,
-        'limiting_param_critical': limiting_param_critical,
-        'OperatingHours': last_row['OperatingHours']
+        'CurrentDate': last_row['MeasurementDate'],
+        'RulWarningMonths': min_rul_warning,
+        'RulCriticalMonths': min_rul_critical,
+        'RulWarningYears': round(min_rul_warning / 12, 2),
+        'RulCriticalYears': round(min_rul_critical / 12, 2),
+        'ReplacementDateWarning': replacement_date_warning,
+        'ReplacementDateCritical': replacement_date_critical,
+        'LimitingParamWarning': limiting_param_warning,
+        'LimitingParamCritical': limiting_param_critical,
+        'OperatingHoursAtCalculation': last_row['OperatingHours']
     })
     
     forecast_data.extend(predicted_oil)
@@ -242,9 +242,10 @@ print("SAVING RESULTS TO DATABASE")
 print("="*80)
 
 df_rul = pd.DataFrame(rul_results)
-df_rul['current_date'] = df_rul['current_date'].astype(str)
-df_rul['replacement_date_warning'] = df_rul['replacement_date_warning'].astype(str)
-df_rul['replacement_date_critical'] = df_rul['replacement_date_critical'].astype(str)
+df_rul['CurrentDate'] = df_rul['CurrentDate'].astype(str)
+df_rul['ReplacementDateWarning'] = df_rul['ReplacementDateWarning'].astype(str)
+df_rul['ReplacementDateCritical'] = df_rul['ReplacementDateCritical'].astype(str)
+
 df_rul.to_csv("rul_results_2030.csv", index=False, encoding='utf-8')
 print("rul_results_2030.csv")
 
@@ -256,28 +257,35 @@ print(" oil_forecast_60months.csv")
 cursor = conn.cursor() # Создаем курсор для выполнения SQL
 
 try:
-    # Подготовим SQL-запрос для вставки
+    # --- 1. Удаляем старые записи для каждого PumpId ---
+    cursor.execute("""
+    DELETE FROM "RulResults" WHERE "PumpId" = ANY(%s);
+    """, (list(set(r['PumpId'] for r in rul_results)),))
+
+    print(f"OK: Удалены старые записи для {len(rul_results)} насосов.")
+
+    # --- 2. Вставляем новые ---
     insert_query = """
-        INSERT INTO "RulResults" 
-        ("PumpId", "CurrentDate", "RulWarningMonths", "RulCriticalMonths", 
-         "RulWarningYears", "RulCriticalYears", "ReplacementDateWarning", 
-         "ReplacementDateCritical", "LimitingParamWarning", "LimitingParamCritical", "OperatingHoursAtCalculation")
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    INSERT INTO "RulResults" 
+    ("PumpId", "CurrentDate", "RulWarningMonths", "RulCriticalMonths", 
+    "RulWarningYears", "RulCriticalYears", "ReplacementDateWarning", 
+    "ReplacementDateCritical", "LimitingParamWarning", "LimitingParamCritical", "OperatingHoursAtCalculation")
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
 
     for result in rul_results:
         cursor.execute(insert_query, (
-            int(result['PumpId']),                     # numpy.int64 → int
-            result['current_date'],                    # datetime — OK
-            int(result['rul_warning_months']),         # numpy.int64 → int
-            int(result['rul_critical_months']),        # numpy.int64 → int
-            float(result['rul_warning_years']),        # numpy.float64 → float
-            float(result['rul_critical_years']),       # numpy.float64 → float
-            result['replacement_date_warning'],        # datetime — OK
-            result['replacement_date_critical'],       # datetime — OK
-            str(result['limiting_param_warning']),     # str — OK
-            str(result['limiting_param_critical']),    # str — OK
-            int(result['OperatingHours'])              # numpy.int64 → int
+            int(result['PumpId']),                           # "PumpId"
+            result['CurrentDate'],                          # "CurrentDate"
+            int(result['RulWarningMonths']),               # "RulWarningMonths"
+            int(result['RulCriticalMonths']),              # "RulCriticalMonths"
+            float(result['RulWarningYears']),              # "RulWarningYears"
+            float(result['RulCriticalYears']),             # "RulCriticalYears"
+            result['ReplacementDateWarning'],              # "ReplacementDateWarning"
+            result['ReplacementDateCritical'],             # "ReplacementDateCritical"
+            str(result['LimitingParamWarning']),           # "LimitingParamWarning"
+            str(result['LimitingParamCritical']),          # "LimitingParamCritical"
+            int(result['OperatingHoursAtCalculation'])     # "OperatingHoursAtCalculation"
         ))
     conn.commit() # Подтверждаем все вставки одной транзакцией
     print(f"OK: Added {len(rul_results)} records to 'RulResults'.")
@@ -337,8 +345,8 @@ current_date = last_measurements['MeasurementDate'].max()
 july_2027 = pd.Timestamp('2027-07-01 21:00:00+00:00')
 months_to_july_2027 = (july_2027 - current_date).days / 30
 
-#  ИСПРАВЛЕНИЕ: используем 'rul_warning_months' вместо 'rul_months'
-rul_positions = {r['PumpId']: r['rul_warning_months'] for r in rul_results}
+#  ИСПРАВЛЕНИЕ: используем 'RulWarningMonths' вместо 'rul_warning_months'
+rul_positions = {r['PumpId']: r['RulWarningMonths'] for r in rul_results}
 
 fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 axes = axes.flatten()
@@ -418,15 +426,15 @@ for r in rul_results:
     print(f"\n{'='*70}")
     print(f"PUMP {r['PumpId']}")
     print(f"{'='*70}")
-    print(f"   Current operating hours: {r['OperatingHours']:.0f} hours")
-    print(f"   Last meashurement: {r['current_date']}")
-    print(f"    RUL to WARNING: {r['rul_warning_months']} mon. ({r['rul_warning_years']} years)")
-    print(f"    Replace (plan): {r['replacement_date_warning'].strftime('%Y-%m')}")
+    print(f"   Current operating hours: {r['OperatingHoursAtCalculation']:.0f} hours")
+    print(f"   Last meashurement: {r['CurrentDate']}")
+    print(f"    RUL to WARNING: {r['RulWarningMonths']} mon. ({r['RulWarningYears']} years)")
+    print(f"    Replace (plan): {r['ReplacementDateWarning'].strftime('%Y-%m')}")
  
-    print(f"    RUL to CRITICAL: {r['rul_critical_months']} mon. ({r['rul_critical_years']} years)")
-    print(f"    Replace (deadline): {r['replacement_date_critical'].strftime('%Y-%m')}")
+    print(f"    RUL to CRITICAL: {r['RulCriticalMonths']} mon. ({r['RulCriticalYears']} years)")
+    print(f"    Replace (deadline): {r['ReplacementDateCritical'].strftime('%Y-%m')}")
 
-    print(f"    Limiting parameter: {r['limiting_param_warning']}")
+    print(f"    Limiting parameter: {r['LimitingParamWarning']}")
 
 print("\n" + "="*80)
 print("RUL CALCULATION COMPLETED")
