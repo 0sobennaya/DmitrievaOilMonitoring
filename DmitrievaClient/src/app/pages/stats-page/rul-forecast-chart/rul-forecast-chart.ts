@@ -60,6 +60,45 @@ export class RulChartSimpleComponent implements AfterViewInit {
         plannedDate.setFullYear(plannedDate.getFullYear() + 5);
         plannedDates.push(plannedDate);
       }
+      // 🔑 ШАГ: Добавляем ОДИН общий плагин для зоны и горизонтальных линий
+      const commonElementsPlugin: Plugin<'line'> = {
+        id: 'common-rul-elements',
+        afterDraw: (chart) => {
+          const ctx = chart.ctx;
+          const xAxis = chart.scales['x'];
+          const yAxis = chart.scales['y'];
+
+          const WARNING = 1.3;
+          const CRITICAL = 1.5;
+
+          // 1. Зона риска (между WARNING и CRITICAL)
+          const yWarn = yAxis.getPixelForValue(WARNING);
+          const yCrit = yAxis.getPixelForValue(CRITICAL);
+          ctx.fillStyle = 'rgba(255, 152, 0, 0.2)';
+          ctx.fillRect(
+            xAxis.left,
+            Math.min(yWarn, yCrit),
+            xAxis.width,
+            Math.abs(yWarn - yCrit)
+          );
+
+          // 2. Горизонтальная линия WARNING
+          ctx.strokeStyle = '#ff9800';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(xAxis.left, yWarn);
+          ctx.lineTo(xAxis.right, yWarn);
+          ctx.stroke();
+
+          // 3. Горизонтальная линия CRITICAL
+          ctx.strokeStyle = '#ff4444';
+          ctx.beginPath();
+          ctx.moveTo(xAxis.left, yCrit);
+          ctx.lineTo(xAxis.right, yCrit);
+          ctx.stroke();
+        }
+      };
 
       const earliestPlannedDate = plannedDates.length > 0
         ? new Date(Math.min(...plannedDates.map(d => d.getTime())))
@@ -110,7 +149,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
 
         // Датасеты
         datasets.push({
-          label: `Факт — Насос ${data.pumpId}`,
+          label: `Насос ${data.pumpId}`,
           data: factChartData,
           borderColor: this.getColor(data.pumpId),
           backgroundColor: 'transparent',
@@ -123,8 +162,8 @@ export class RulChartSimpleComponent implements AfterViewInit {
           showLine: true
         });
         datasets.push({
-          label: `Прогноз — Насос ${data.pumpId}`,
           data: forecastChartData,
+          label: '',
           borderColor: this.getColor(data.pumpId),
           backgroundColor: 'transparent',
           borderWidth: 2,
@@ -195,7 +234,8 @@ export class RulChartSimpleComponent implements AfterViewInit {
               position: 'top' as const,
               labels: {
                 color: '#ffffff',
-                font: { size: 13 }
+                font: { size: 13 },
+                filter: (item) => !!item.text
               }
             },
             tooltip: {
@@ -231,7 +271,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
             }
           }
         },
-        plugins: [...plugins]
+        plugins: [...plugins, commonElementsPlugin ]
       });
 
     } catch (error) {
