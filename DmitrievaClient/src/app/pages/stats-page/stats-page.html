@@ -1,7 +1,40 @@
 <!-- stats-page.html -->
 <div class="stats-container">
   <h1 class="stats-title">Статистика</h1>
-
+  <!-- === RUL Results Summary === -->
+@if (rulResults(); as results) {
+<div class="rul-results-section">
+  <h2 class="section-title">Результаты расчёта RUL</h2>
+  
+  <div class="rul-results-grid">
+    @for (result of results; track result.id) {
+      <div class="rul-result-card">
+        <div class="pump-header">
+          <span class="pump-id">Насос {{ result.pumpId }}</span>
+          <span class="limiting-param">{{  translateParam(result.limitingParamWarning) }}</span>
+        </div>
+        <div class="rul-data">
+          <div class="rul-item">
+            <span class="label">До прогнозируемой замены:</span>
+            <span class="value months warning">{{ result.rulWarningMonths }} мес.</span>
+          </div>
+          <div class="rul-item">
+            <span class="label">Дата замены:</span>
+            <span class="value date">{{ formatDate(result.replacementDateWarning) }}</span>
+          </div>
+          <div class="rul-item">
+            <span class="label">До критического состояния:</span>
+            <span class="value months critical">{{ result.rulCriticalMonths }} мес.</span>
+          </div>
+        </div>
+        <div class="current-date-footer">
+      Актуально на: {{ formatDate( result.currentDate)  }}
+    </div>
+      </div>
+    }
+  </div>
+</div>
+}
   <!-- Прогноз RUL для всех насосов -->
 <div class="pump-details-section">
   <h2>Прогноз RUL для всех насосов</h2>

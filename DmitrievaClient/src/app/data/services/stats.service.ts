@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, of, tap, throwError } from 'rxjs';
-import { CriticalWear, OilForecastPointDTO, OilStatistics, PumpDetails, PumpHealth, RulForecastWithFactDTO } from '../interfaces/stats.interface';
+import { CriticalWear, OilForecastPointDTO, OilStatistics, PumpDetails, PumpHealth, RulForecastWithFactDTO, RulResult } from '../interfaces/stats.interface';
 import { AuthService } from './auth.service';
 @Injectable({
   providedIn: 'root'
@@ -72,6 +72,10 @@ getPumpDetails(){
   const token = this.authService.token;
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   return this.http.get<RulForecastWithFactDTO>(url, { headers });
+}
+getRulResults() {
+  const url = `${this.baseApiUrl}RulCalculation/rul-results-latest`;
+  return this.http.get<RulResult[]>(url);
 }
 
 }

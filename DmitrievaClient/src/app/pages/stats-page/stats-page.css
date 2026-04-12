@@ -201,3 +201,113 @@ app-rul-chart-simple canvas {
   width: 100% !important;
   height: 100% !important;
 }
+/* === RUL Results Summary === */
+.rul-results-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 20px;
+  color: var(--white-color);
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.rul-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.rul-result-card {
+  background: var(--primary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.pump-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 8px;
+}
+
+.pump-id {
+  font-weight: 600;
+  color: #32b8c6; /* Синий цвет из вашей палитры */
+  font-size: 16px;
+}
+
+.limiting-param {
+  background: rgba(255, 152, 0, 0.2); /* Оранжевый фон */
+  color: #ff9800; /* Оранжевый текст */
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rul-data {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rul-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.label {
+  color: var(--gray-light-color);
+  font-size: 12px;
+}
+
+.value {
+  color: var(--white-color);
+  font-weight: 500;
+}
+
+.value.months.warning {
+  color: #ff9800;
+}
+
+.value.months.critical {
+  color: #ff4444;
+}
+.value.date {
+  color: #00d4aa; /* Зелёный для даты */
+}
+.rul-update-info {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--gray-light-color);
+}
+
+.rul-update-info .date-label {
+  color: #00d4aa;
+  font-weight: 600;
+}
+.current-date-footer {
+  margin-top: 12px;
+  padding: 6px 10px;
+  background: rgba(50, 184, 198, 0.1); /* Светло-синий фон */
+  border: 1px solid rgba(50, 184, 198, 0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #32b8c6; /* Синий цвет */
+  text-align: center;
+  font-weight: 500;
+}

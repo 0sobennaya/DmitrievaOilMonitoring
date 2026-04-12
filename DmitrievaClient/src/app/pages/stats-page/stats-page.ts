@@ -2,11 +2,11 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, signal, ViewChild, 
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { StatsService } from '../../data/services/stats.service';
-import { OilStatistics, CriticalWear, PumpHealth, PumpDetails } from '../../data/interfaces/stats.interface';
+import { OilStatistics, CriticalWear, PumpHealth, PumpDetails, RulResult, RulForecastWithFactDTO } from '../../data/interfaces/stats.interface';
 import { AuthService } from '../../data/services/auth.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, tap, throwError } from 'rxjs';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, BarElement, BarController, DoughnutController, RadialLinearScale, RadarController, LineElement, Filler, LineController} from 'chart.js';
+import { catchError, firstValueFrom, tap, throwError } from 'rxjs';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, BarElement, BarController, DoughnutController, RadialLinearScale, RadarController, LineElement, Filler, LineController } from 'chart.js';
 import { Chart } from 'chart.js';
 import { RulChartSimpleComponent } from "./rul-forecast-chart/rul-forecast-chart";
 
@@ -42,43 +42,14 @@ export class StatsPage implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private http = inject(HttpClient);
 
-  runRulCalculation() {
-    const url = `${this.baseApiUrl}RulCalculation/run-calculation`;
-    const token = this.authService.token;
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.post<{ message: string }>(url, {}, { headers }).pipe(
-      tap(response => console.log('Расчёт RUL запущен:', response.message)),
-      );
-  }
-
-  @ViewChild('pumpChart') pumpChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('pumpDetailsChart') pumpDetailsChartRef!: ElementRef<HTMLCanvasElement>;
-
+  // --- SIGNALS ---
   statistics = signal<OilStatistics | null>(null);
   criticalWear = signal<CriticalWear[]>([]);
   pumpsHealth = signal<PumpHealth[]>([]);
+  rulResults = signal<RulResult[]>([]); 
+  pumpIdsList = computed(() => this.pumpsHealth().map(p => p.id));
 
-   pumpIdsList = computed(() => this.pumpsHealth().map(p => p.id));
-
-  // Цветовая палитра для всех статусов (от критичного к нормальному)
-  readonly COLOR_MAP = {
-    'Критическое': { main: '#ff4444', light: 'rgba(255, 68, 68, 0.6)' },
-    'Предельное': { main: '#ff9800', light: 'rgba(255, 152, 0, 0.6)' },
-    'Допустимое': { main: '#d9ff00ff', light: 'rgba(217, 255, 0, 0.6)' },
-    'Нормальное': { main: '#00d4aa', light: 'rgba(0, 212, 170, 0.6)' }
-  };
-
-  // Порядок критичности статусов (для сортировки)
-  readonly CRITICALITY_ORDER = {
-    'Критическое': 0,
-    'Предельное': 1,
-    'Допустимое': 2,
-    'Нормальное': 3
-  };
-
+  // --- CHART DATA & OPTIONS ---
   statusChartData = signal<any>({
     labels: [],
     datasets: [{
@@ -172,31 +143,101 @@ export class StatsPage implements OnInit, AfterViewInit {
     }
   };
 
+  // --- CHART INSTANCES ---
   private pumpChart: Chart | null = null;
   private pumpDetailsChart: Chart | null = null;
 
+  // --- VIEW CHILDREN ---
+  @ViewChild('pumpChart') pumpChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('pumpDetailsChart') pumpDetailsChartRef!: ElementRef<HTMLCanvasElement>;
+
+  // --- COLORS & MAPPINGS ---
+  readonly COLOR_MAP = {
+    'Критическое': { main: '#ff4444', light: 'rgba(255, 68, 68, 0.6)' },
+    'Предельное': { main: '#ff9800', light: 'rgba(255, 152, 0, 0.6)' },
+    'Допустимое': { main: '#d9ff00ff', light: 'rgba(217, 255, 0, 0.6)' },
+    'Нормальное': { main: '#00d4aa', light: 'rgba(0, 212, 170, 0.6)' }
+  };
+
+  readonly CRITICALITY_ORDER = {
+    'Критическое': 0,
+    'Предельное': 1,
+    'Допустимое': 2,
+    'Нормальное': 3
+  };
+
+  // --- GETTERS ---
+  get translateParam(): (param: string) => string {
+    const paramMap: { [key: string]: string } = {
+      'TAN': 'Кислотное число',
+      'WaterContentPct': 'Содержание воды',
+      'ImpuritiesPct': 'Мех. примеси',
+      'FlashPointC': 'Температура вспышки'
+    };
+    return (param: string) => paramMap[param] || param;
+  }
+
+  get minCurrentDate(): string | null {
+    const results = this.rulResults();
+    if (!results || results.length === 0) return null;
+
+    const minDateStr = results.reduce((min, r) => r.currentDate < min ? r.currentDate : min, results[0].currentDate);
+    return minDateStr;
+  }
+
+  // --- METHODS ---
+
   ngOnInit() {
-  this.loadStatistics();
-  this.loadPumpsHealth();
-  this.loadPumpDetails();
-  // Сначала запускаем расчёт
-  this.runRulCalculation().subscribe({
-    next: () => {
-      // После успешного запуска — загружаем статистику и данные насосов
+    // Загружаем данные даже если расчёт не прошёл
+      this.loadRulResults();
       this.loadStatistics();
       this.loadPumpsHealth();
       this.loadPumpDetails();
-    },
-    error: () => {
-      console.warn('Расчёт не запустился, но продолжаем загрузку данных...');
-      
-    }
-  });
-}
+    // Сначала запускаем расчёт
+    this.runRulCalculation().subscribe({
+      next: () => {
+        console.log('Расчёт RUL запущен.');
+      },
+      error: () => {
+        console.warn('Расчёт не запустился, но продолжаем загрузку данных...');
+        
+      }
+    });
+  }
 
   ngAfterViewInit() {
     this.cdr.detectChanges();
     this.checkAndInitChart();
+  }
+
+  runRulCalculation() {
+    const url = `${this.baseApiUrl}RulCalculation/run-calculation`;
+    const token = this.authService.token;
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<{ message: string }>(url, {}, { headers }).pipe(
+      tap(response => console.log('Расчёт RUL запущен:', response.message)),
+    );
+  }
+
+  loadRulResults() {
+    this.statsService.getRulResults().subscribe({
+      next: (data) => {
+        this.rulResults.set(data);
+        this.cdr.markForCheck();  
+      },
+      error: (err) => console.error('Ошибка загрузки RUL-результатов:', err)
+    });
+  }
+  
+  formatDate(date: Date | string | undefined | null): string {
+    if (!date) return 'Нет данных';
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
+    return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
   }
 
   loadStatistics() {
@@ -253,7 +294,6 @@ export class StatsPage implements OnInit, AfterViewInit {
   private initPumpChart(pumpsData: PumpHealth[]) {
     const defaultColor = { main: '#32b8c6', light: 'rgba(50, 184, 198, 0.6)' };
 
-    // Всегда сортируем по критичности
     const sortedData = this.sortByCriticality(pumpsData);
 
     const labels = sortedData.map(p => `Насос ${p.id}`);
@@ -368,93 +408,90 @@ export class StatsPage implements OnInit, AfterViewInit {
   }
 
   private initPumpDetailsChart(pumps: PumpDetails[]) {
-  const statusColors = [
-    this.COLOR_MAP['Критическое'].main,
-    this.COLOR_MAP['Предельное'].main,
-    this.COLOR_MAP['Допустимое'].main,
-    this.COLOR_MAP['Нормальное'].main
-  ];
-
-  // Конфиг каждой оси
-  const axisConfigs = [
-    { min: 20, max: 120 },      // Температура
-    { min: 0, max: 20 },        // Вибрация
-    { min: 0, max: 5 }      // Загрязнение
-  ];
-
-  const datasets = pumps.map((pump, index) => {
-    const statusValue = this.getStatusValue(pump.oilStatus);
-    const color = statusColors[index % statusColors.length];
-    
-    // Нормализуем значения к диапазону [0, 100]
-    const normalizedData = [
-      ((pump.oilTemperature - axisConfigs[0].min) / (axisConfigs[0].max - axisConfigs[0].min)) * 100,
-      ((pump.vibration - axisConfigs[1].min) / (axisConfigs[1].max - axisConfigs[1].min)) * 100,
-      ((pump.oilContamination - axisConfigs[2].min) / (axisConfigs[2].max - axisConfigs[2].min)) * 100,
-      
+    const statusColors = [
+      this.COLOR_MAP['Критическое'].main,
+      this.COLOR_MAP['Предельное'].main,
+      this.COLOR_MAP['Допустимое'].main,
+      this.COLOR_MAP['Нормальное'].main
     ];
 
-    return {
-      label: `Насос ${pump.pumpId}`,
-      data: normalizedData,
-      borderColor: color,
-      backgroundColor: `rgba(${this.hexToRgb(color)}, 0.2)`,
-      borderWidth: 2,
-      pointRadius: 5,
-      pointHoverRadius: 7,
-      fill: true 
-    };
-  });
+    const axisConfigs = [
+      { min: 20, max: 120 },      // Температура
+      { min: 0, max: 20 },        // Вибрация
+      { min: 0, max: 5 }          // Загрязнение
+    ];
 
-  if (this.pumpDetailsChart) {
-    this.pumpDetailsChart.destroy();
-  }
+    const datasets = pumps.map((pump, index) => {
+      const statusValue = this.getStatusValue(pump.oilStatus);
+      const color = statusColors[index % statusColors.length];
 
-  const ctx = this.pumpDetailsChartRef?.nativeElement?.getContext('2d');
-  if (!ctx) {
-    return;
-  }
+      const normalizedData = [
+        ((pump.oilTemperature - axisConfigs[0].min) / (axisConfigs[0].max - axisConfigs[0].min)) * 100,
+        ((pump.vibration - axisConfigs[1].min) / (axisConfigs[1].max - axisConfigs[1].min)) * 100,
+        ((pump.oilContamination - axisConfigs[2].min) / (axisConfigs[2].max - axisConfigs[2].min)) * 100,
+      ];
 
-  this.pumpDetailsChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: ['Температура (°C)', 'Вибрация (мм/с)', 'Загрязнение (мкм)'],
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top' as const,
-          labels: {
-            color: '#fff',
-            font: { size: 13 }
-          }
-        },
-        filler:{
-          propagate: true
-        }
+      return {
+        label: `Насос ${pump.pumpId}`,
+        data: normalizedData,
+        borderColor: color,
+        backgroundColor: `rgba(${this.hexToRgb(color)}, 0.2)`,
+        borderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true
+      };
+    });
+
+    if (this.pumpDetailsChart) {
+      this.pumpDetailsChart.destroy();
+    }
+
+    const ctx = this.pumpDetailsChartRef?.nativeElement?.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    this.pumpDetailsChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Температура (°C)', 'Вибрация (мм/с)', 'Загрязнение (мкм)'],
+        datasets: datasets
       },
-      scales: {
-        r: {
-          beginAtZero: true,
-          min: 0,
-          max: 100,
-          ticks: {
-            display : false,
-            callback: (value: any) => {
-              return value; // Показываем процент 0-100
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top' as const,
+            labels: {
+              color: '#fff',
+              font: { size: 13 }
             }
           },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
+          filler: {
+            propagate: true
+          }
+        },
+        scales: {
+          r: {
+            beginAtZero: true,
+            min: 0,
+            max: 100,
+            ticks: {
+              display: false,
+              callback: (value: any) => {
+                return value;
+              }
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
           }
         }
       }
-    }
-  });
-}
+    });
+  }
 
   private getStatusValue(status: string): number {
     const statusMap: Record<string, number> = {
@@ -474,7 +511,6 @@ export class StatsPage implements OnInit, AfterViewInit {
     return '100, 100, 100';
   }
 
-  // Сортировка по критичности (от критичного к нормальному)
   private sortByCriticality(data: PumpHealth[]): PumpHealth[] {
     return [...data].sort((a, b) => {
       const orderA = this.CRITICALITY_ORDER[a.oilStatus as keyof typeof this.CRITICALITY_ORDER] ?? 999;

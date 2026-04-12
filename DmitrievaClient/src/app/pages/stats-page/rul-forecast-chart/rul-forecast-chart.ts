@@ -1,4 +1,3 @@
-// File: src/app/rul-forecast-chart/rul-forecast-chart.ts
 import { Component, AfterViewInit, ElementRef, ViewChild, inject, Input } from '@angular/core';
 import { Chart, Plugin, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
@@ -43,7 +42,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
       const validData = allData.filter(d => d.factPoints.length > 0 || d.forecastPoints.length > 0);
       if (validData.length === 0) return;
 
-      // ===================== 🔑 ГЛОБАЛЬНЫЕ ДАТЫ =====================
+      // ===================== ГЛОБАЛЬНЫЕ ДАТЫ =====================
       const allDates: number[] = [];
 
       for (const data of validData) {
@@ -97,7 +96,6 @@ export class RulChartSimpleComponent implements AfterViewInit {
         ? new Date(Math.min(...plannedDates.map(d => d.getTime())))
         : new Date();
 
-      // 🔑 Учитываем плановую замену в общем диапазоне
       const maxDate = new Date(
         Math.max(
           maxDateFromData.getTime(),
@@ -259,6 +257,18 @@ export class RulChartSimpleComponent implements AfterViewInit {
           [earliestPlannedDate.toISOString(), this.critical]
         ],
         borderColor: '#ffffff',
+        borderDash: [4, 4],
+        pointRadius: 0,
+        borderWidth: 1,
+        
+      });
+      datasets.push({
+        label: 'Прогнозная замена',
+        data: [
+          [earliestPlannedDate.toISOString(), 0],
+          [earliestPlannedDate.toISOString(), this.critical]
+        ],
+        borderColor: '#ff9800',
         borderDash: [4, 4],
         pointRadius: 0,
         borderWidth: 1,

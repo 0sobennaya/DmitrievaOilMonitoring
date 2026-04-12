@@ -55,3 +55,17 @@ export interface RulForecastWithFactDTO {
   factPoints: FactPointDTO[];
   forecastPoints: OilForecastPointDTO[];
 }
+export interface RulResult {
+  id: number;
+  pumpId: number;
+  currentDate: string;  
+  rulWarningMonths: number;
+  rulCriticalMonths: number;
+  rulWarningYears: number;
+  rulCriticalYears: number;
+  replacementDateWarning: string;  
+  replacementDateCritical: string;  
+  limitingParamWarning: string;
+  limitingParamCritical: string;
+  operatingHoursAtCalculation: number;
+}
