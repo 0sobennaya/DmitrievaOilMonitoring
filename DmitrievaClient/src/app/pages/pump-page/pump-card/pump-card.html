@@ -252,7 +252,7 @@
                 class="big-edit-input"
                 [class.input-error]="pumpForm.get('oilPressure')?.invalid && pumpForm.get('oilPressure')?.touched"
                 (change)="updatePump()">
-              <span class="big-unit">бар</span>
+              <span class="big-unit">м³/ч</span>
             </div>
           } @else {
             <span class="value">{{pump.oilPressure}} <span class="big-unit">бар</span></span>

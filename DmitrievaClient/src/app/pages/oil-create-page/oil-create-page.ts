@@ -41,7 +41,9 @@ export class OilCreatePage implements OnInit  {
     this.oilForm = this.fb.group({
       tan: [0, [Validators.required, Validators.min(0), Validators.max(5)]],
       viscosity: [0, [Validators.required, Validators.min(3.8), Validators.max(26.1)]],
-      waterContent: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      waterContent: [0, [Validators.required, Validators.min(0), Validators.max(1)]],
+      impuritiesPct: [0, [Validators.required, Validators.min(0), Validators.max(2)]],
+      flashPointC: [0, [Validators.required, Validators.min(150), Validators.max(230)]],
       installationDate: [new Date().toISOString().substring(0, 10), [Validators.required]],
       operatingHours: [0, [Validators.required, Validators.min(0)]],
       startStopCycles: [0, [Validators.required, Validators.min(0)]],

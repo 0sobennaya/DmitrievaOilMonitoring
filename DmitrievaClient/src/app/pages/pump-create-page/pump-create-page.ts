@@ -54,16 +54,16 @@ export class PumpCreatePage implements OnInit {
   initForm() {
     this.pumpForm = this.fb.group({
       mode: [0, [Validators.required, Validators.min(0), Validators.max(3)]],
-      pressureIn: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
-      pressureOut: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
-      temperatureBody: [0, [Validators.required, Validators.min(-50), Validators.max(200)]],
-      temperatureBearing: [0, [Validators.required, Validators.min(-50), Validators.max(200)]],
-      power: [0, [Validators.required, Validators.min(0), Validators.max(10000)]],
-      shaftRotationFrequency: [0, [Validators.required, Validators.min(0), Validators.max(10000)]],
+      pressureIn: [0, [Validators.required, Validators.min(3), Validators.max(8)]], //бар
+      pressureOut: [0, [Validators.required, Validators.min(26), Validators.max(31)]], //бар
+      temperatureBody: [0, [Validators.required, Validators.min(-50), Validators.max(80)]], // град
+      temperatureBearing: [0, [Validators.required, Validators.min(-50), Validators.max(93)]], // град
+      power: [0, [Validators.required, Validators.min(0), Validators.max(2230)]],
+      shaftRotationFrequency: [0, [Validators.required, Validators.min(0), Validators.max(3000)]],
       oilLevel: [100, [Validators.required, Validators.min(0), Validators.max(100)]],
-      oilTemperature: [0, [Validators.required, Validators.min(0), Validators.max(150)]],
-      oilPressure: [0, [Validators.required, Validators.min(0), Validators.max(500)]],
-      vibration: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      oilTemperature: [0, [Validators.required, Validators.min(0), Validators.max(70)]],
+      oilPressure: [0, [Validators.required, Validators.min(0.33), Validators.max(0.78)]], // м^3/ч
+      vibration: [0, [Validators.required, Validators.min(0), Validators.max(7.1)]],
       oilId: [null, Validators.required],
     });
   }

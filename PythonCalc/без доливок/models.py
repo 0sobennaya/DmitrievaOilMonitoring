@@ -38,12 +38,12 @@ targets_config = {
     },
     'Water': {
         'target_col': 'water_pct',
-        'features': ['mean_vibration', 'mean_oil_temp'],
+        'features': ['mean_vibration', 'mean_oil_temp', 'TAN'],
         'model_type': 'linear'
     },
     'Impurities': {
         'target_col': 'impurities_pct',
-        'features': ['operating_hours', 'mean_vibration'],
+        'features': [ 'mean_vibration','operating_hours'],
         'model_type': 'linear'
     },
     'Flash Point': {
@@ -227,3 +227,46 @@ print("   4. Физическое обоснование: скорость ок�
 print("\n" + "="*80)
 print("✅ МОДЕЛИ ГОТОВЫ. Запускайте rul.py")
 print("="*80)
+
+# ===============================================================
+# ВЫВОД ФОРМУЛ МОДЕЛЕЙ
+# ===============================================================
+print("\n" + "="*80)
+print("ФОРМУЛЫ МОДЕЛЕЙ")
+print("="*80)
+
+for res in results:
+    name = res['Target']
+    model_type = res['Model_Type']
+    features = res['Features']
+    coef = res['Coefficient']
+    intercept = res['Intercept']
+    
+    print(f"\n📊 {name}:")
+    print(f"   Тип: {model_type}")
+    print(f"   Признаки: {features}")
+    print(f"   Intercept (b): {intercept:.6f}")
+    
+    if len(features) == 1:
+        print(f"   Coef (a): {coef[0]:.6f}")
+    else:
+        for i, (feat, c) in enumerate(zip(features, coef)):
+            print(f"   Coef {feat}: {c:.6f}")
+    
+    # Формула
+    if model_type == 'exponential':
+        if len(features) == 1:
+            print(f"\n   ФОРМУЛА: {name} = exp({coef[0]:.4f}·{features[0]} + {intercept:.4f})")
+        else:
+            terms = [f"{c:.4f}·{f}" for f, c in zip(features, coef)]
+            formula = " + ".join(terms) + f" + {intercept:.4f}"
+            print(f"\n   ФОРМУЛА: {name} = exp({formula})")
+    else:
+        if len(features) == 1:
+            print(f"\n   ФОРМУЛА: {name} = {coef[0]:.4f}·{features[0]} + {intercept:.4f}")
+        else:
+            terms = [f"{c:.4f}·{f}" for f, c in zip(features, coef)]
+            formula = " + ".join(terms) + f" + {intercept:.4f}"
+            print(f"\n   ФОРМУЛА: {name} = {formula}")
+
+print("\n" + "="*80)

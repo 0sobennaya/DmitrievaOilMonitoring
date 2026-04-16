@@ -1,0 +1,6 @@
+date,pump_id,TAN,water_pct,impurities_pct,flash_point_C,is_topup,has_leak,mean_vibration,mean_oil_temp,mean_bearing_temp,operating_hours
+2022-07-26,2,0.01,0.02,0.02,211.23,False,False,0.759,72.55,88.3,0.0
+2024-07-23,2,0.02,0.03,0.048,217.5,False,False,1.009,75.17,88.97,6989.0
+2025-01-21,2,0.01,0.03,0.061,215.44,False,False,1.283,75.96,88.84,8736.0
+2025-04-22,2,0.02,0.03,0.033,207.25,True,True,1.482,79.79,90.21,9610.0
+2025-07-22,2,0.02,0.03,0.091,212.31,False,False,1.059,72.07,87.46,10483.0

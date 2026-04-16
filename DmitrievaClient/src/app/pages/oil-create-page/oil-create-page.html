@@ -45,6 +45,32 @@
           <span class="error-message">{{ getError('waterContent') }}</span>
         }
         </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Содержание примесей (%)</mat-label>
+        <input
+          matInput
+          formControlName="impuritiesPct"
+          type="number"
+          
+          [class.input-error]="oilForm.get('impuritiesPct')?.invalid && oilForm.get('impuritiesPct')?.touched"
+        />
+        @if (getError('impuritiesPct')) {
+          <span class="error-message">{{ getError('impuritiesPct') }}</span>
+        }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Температура вспышки</mat-label>
+        <input
+          matInput
+          formControlName="flashPointC"
+          type="number"
+          
+          [class.input-error]="oilForm.get('flashPointC')?.invalid && oilForm.get('flashPointC')?.touched"
+        />
+        @if (getError('flashPointC')) {
+          <span class="error-message">{{ getError('flashPointC') }}</span>
+        }
+        </mat-form-field>
         </div>
         <div class="form-section">
             <h2>Использование</h2>

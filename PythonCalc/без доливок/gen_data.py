@@ -87,9 +87,10 @@ def generate_pump_data(pump_id, n_quarters=40, load_factor=1.0, start_date='2022
         
         # Примеси растут от вибрации (износ)
         imp_growth = 0.003 + 0.05 * (vibration - 0.5)
-        impurities += imp_growth * load_factor
+        impurities += imp_growth * load_factor/2
         impurities += np.random.normal(0, 0.002)
-        impurities = max(0.020, min(1.2, impurities)) + np.random.normal(0, 0.002)
+        impurities = max(0.020, min(1.2, impurities)) + np.random.normal(0, 0.002) * np.random.normal(0.7, 1)
+
         
         # Flash Point по физической формуле
         flash_point = 216 - 200 * tan - 80 * water
