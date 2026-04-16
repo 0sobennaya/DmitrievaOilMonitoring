@@ -286,6 +286,9 @@ app-rul-chart-simple canvas {
 .value.date {
   color: #00d4aa; /* Зелёный для даты */
 }
+.value.date.white {
+  color: #ffffff; 
+}
 .rul-update-info {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);

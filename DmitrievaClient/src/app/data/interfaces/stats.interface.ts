@@ -68,4 +68,5 @@ export interface RulResult {
   limitingParamWarning: string;
   limitingParamCritical: string;
   operatingHoursAtCalculation: number;
+  planReplaceDate: string;
 }

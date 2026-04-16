@@ -30,16 +30,38 @@ export class RulChartSimpleComponent implements AfterViewInit {
 
   ngAfterViewInit() {}
 
-  private async loadAndRender() {
+    private async loadAndRender() {
     if (this.pumpIds.length === 0) return;
 
     try {
+      // 1. ЗАПУСКАЕМ ЗАПРОСЫ ПАРАЛЛЕЛЬНО
+      // Запрос графика для каждого насоса
       const dataPromises = this.pumpIds.map(id =>
         firstValueFrom(this.statsService.getForecastWithFact(id))
       );
-      const allData: RulForecastWithFactDTO[] = await Promise.all(dataPromises);
+      // Запрос результатов RUL (один раз на все насосы)
+      const rulResultsPromise = firstValueFrom(this.statsService.getRulResults());
 
-      const validData = allData.filter(d => d.factPoints.length > 0 || d.forecastPoints.length > 0);
+      // Ждем завершения обоих типов запросов
+      const [allChartData, allRulResults] = await Promise.all([
+        Promise.all(dataPromises),
+        rulResultsPromise
+      ]);
+
+      // 2. СОЗДАЁМ СЛОВАРЬ ДЛЯ БЫСТРОГО ПОИСКА (PumpId -> Данные RUL)
+      // Используем Map для быстрого доступа O(1)
+      const rulMap = new Map<number, any>();
+      if (allRulResults && Array.isArray(allRulResults)) {
+        allRulResults.forEach((res: any) => {
+          // Убедитесь, что поле называется planReplaceDate в ответе API
+          if (res.planReplaceDate) {
+            rulMap.set(res.pumpId, res);
+          }
+        });
+      }
+
+      // Фильтруем пустые данные графика
+      const validData = allChartData.filter(d => d.factPoints.length > 0 || d.forecastPoints.length > 0);
       if (validData.length === 0) return;
 
       // ===================== ГЛОБАЛЬНЫЕ ДАТЫ =====================
@@ -53,7 +75,6 @@ export class RulChartSimpleComponent implements AfterViewInit {
         if (!baseDate || isNaN(baseDate.getTime())) continue;
 
         const allPoints = [...data.factPoints, ...data.forecastPoints];
-
         for (const p of allPoints) {
           const d = new Date(baseDate);
           d.setMonth(d.getMonth() + p.month);
@@ -64,37 +85,25 @@ export class RulChartSimpleComponent implements AfterViewInit {
       const minDate = new Date(Math.min(...allDates));
       const maxDateFromData = new Date(Math.max(...allDates));
 
-      // ===================== ПЛАНОВЫЕ ДАТЫ =====================
-      const plannedDates: Date[] = [];
+      // ===================== ПЛАНОВЫЕ ДАТЫ (ИЗ ВТОРОГО ЭНДПОИНТА) =====================
+      const plannedDatesMap = new Map<number, Date>();
 
       for (const data of validData) {
-        let baseDate: Date | null = null;
-
-        if (data.forecastPoints.length > 0 && data.forecastPoints[0].measurementDate) {
-          baseDate = new Date(data.forecastPoints[0].measurementDate);
-        } else {
-          baseDate = new Date();
+        // Берем данные RUL для конкретного насоса из нашей Map
+        const rulInfo = rulMap.get(data.pumpId);
+        
+        if (rulInfo && rulInfo.planReplaceDate) {
+          const plannedDate = new Date(rulInfo.planReplaceDate);
+          if (!isNaN(plannedDate.getTime())) {
+            plannedDatesMap.set(data.pumpId, plannedDate);
+          }
         }
-
-        if (!baseDate || isNaN(baseDate.getTime())) continue;
-
-        const minMonth = Math.min(
-          ...data.factPoints.map(f => f.month),
-          ...data.forecastPoints.map(p => p.month)
-        );
-
-        const firstFactDate = new Date(baseDate);
-        firstFactDate.setMonth(baseDate.getMonth() + minMonth);
-
-        const plannedDate = new Date(firstFactDate);
-        plannedDate.setFullYear(plannedDate.getFullYear() + 5);
-
-        plannedDates.push(plannedDate);
       }
 
-      const earliestPlannedDate = plannedDates.length > 0
-        ? new Date(Math.min(...plannedDates.map(d => d.getTime())))
-        : new Date();
+      // Для отрисовки берем самую раннюю плановую дату
+      const earliestPlannedDate = plannedDatesMap.size > 0
+        ? new Date(Math.min(...Array.from(plannedDatesMap.values()).map(d => d.getTime())))
+        : new Date(maxDateFromData.getTime() + 30 * 24 * 60 * 60 * 1000);
 
       const maxDate = new Date(
         Math.max(
@@ -103,7 +112,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
         )
       );
 
-      // ===================== ПЛАГИНЫ =====================
+      // ===================== ПЛАГИНЫ И РИСОВАНИЕ =====================
       const commonElementsPlugin: Plugin<'line'> = {
         id: 'common-rul-elements',
         afterDraw: (chart) => {
@@ -158,12 +167,10 @@ export class RulChartSimpleComponent implements AfterViewInit {
         };
 
         let rulMonth = 60;
-
         for (const p of data.forecastPoints) {
           const condition = this.param === 'FlashPointC'
             ? getValue(p) <= this.warning
             : getValue(p) >= this.warning;
-
           if (condition) {
             rulMonth = p.month;
             break;
@@ -185,17 +192,18 @@ export class RulChartSimpleComponent implements AfterViewInit {
           return [d.toISOString(), getValue(p)];
         });
 
-        // факт
+        // Dataset: факт
         datasets.push({
           label: `Насос ${data.pumpId}`,
           data: factChartData,
           borderColor: this.getColor(data.pumpId),
           borderWidth: 3,
           tension: 0.4,
-          pointRadius: 4
+          pointRadius: 4,
+          pointBackgroundColor: this.getColor(data.pumpId)
         });
 
-        // прогноз
+        // Dataset: прогноз
         datasets.push({
           label: '',
           data: forecastChartData,
@@ -205,7 +213,7 @@ export class RulChartSimpleComponent implements AfterViewInit {
           pointRadius: 0
         });
 
-        // RUL линия
+        // Плагин: линия прогнозной замены (RUL Warning)
         plugins.push({
           id: `rul-${data.pumpId}`,
           afterDraw: (chart) => {
@@ -215,64 +223,79 @@ export class RulChartSimpleComponent implements AfterViewInit {
 
             const x = xAxis.getPixelForValue(rulDate.getTime());
 
-            if (!isNaN(x)) {
+            if (!isNaN(x) && x >= xAxis.left && x <= xAxis.right) {
               ctx.strokeStyle = this.getColor(data.pumpId);
               ctx.setLineDash([5, 5]);
+              ctx.lineWidth = 2;
+              ctx.globalAlpha = 0.8;
               ctx.beginPath();
               ctx.moveTo(x, yAxis.top);
               ctx.lineTo(x, yAxis.bottom);
               ctx.stroke();
+              ctx.globalAlpha = 1.0;
+
+              ctx.save();
+              ctx.translate(x, yAxis.top + 20);
+              ctx.rotate(-Math.PI / 4);
+              ctx.fillStyle = this.getColor(data.pumpId);
+              ctx.font = 'bold 10px sans-serif';
+              ctx.textAlign = 'center';
+              const dateStr = rulDate.toLocaleDateString('ru-RU', { 
+                month: 'short', 
+                year: 'numeric' 
+              });
+              ctx.restore();
             }
           }
         });
+
+        // Плагин: линия плановой замены (ИЗ DRUGOGO ENDPOINT)
+        const plannedDate = plannedDatesMap.get(data.pumpId);
+        if (plannedDate) {
+          plugins.push({
+            id: `planned-${data.pumpId}`,
+            afterDraw: (chart) => {
+              const ctx = chart.ctx;
+              const xAxis = chart.scales['x'];
+              const yAxis = chart.scales['y'];
+
+              const x = xAxis.getPixelForValue(plannedDate.getTime());
+
+              if (!isNaN(x) && x >= xAxis.left && x <= xAxis.right) {
+                ctx.strokeStyle  = '#ffffff';
+                ctx.setLineDash([3, 3]);
+                ctx.lineWidth = 1.5;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.moveTo(x, yAxis.top);
+                ctx.lineTo(x, yAxis.bottom);
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+              }
+            }
+          });
+        }
       }
 
-      // плановая линия
-      plugins.push({
-        id: 'planned',
-        afterDraw: (chart) => {
-          const ctx = chart.ctx;
-          const xAxis = chart.scales['x'];
-          const yAxis = chart.scales['y'];
-
-          const x = xAxis.getPixelForValue(earliestPlannedDate.getTime());
-
-          if (!isNaN(x)) {
-            ctx.strokeStyle = '#ffffff';
-            ctx.setLineDash([4, 4]);
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, yAxis.top);
-            ctx.lineTo(x, yAxis.bottom);
-            ctx.stroke();
-          }
-        }
-      });
-
-      // для легенды
+      // Легенда
+      if (plannedDatesMap.size > 0) {
+        datasets.push({
+          label: 'Плановая замена ',
+          data: [[earliestPlannedDate.toISOString(), 0]],
+          borderColor: '#888',
+          borderDash: [3, 3],
+          pointRadius: 0,
+          borderWidth: 1.5
+        });
+      }
+      
       datasets.push({
-        label: 'Плановая замена',
-        data: [
-          [earliestPlannedDate.toISOString(), 0],
-          [earliestPlannedDate.toISOString(), this.critical]
-        ],
-        borderColor: '#ffffff',
-        borderDash: [4, 4],
-        pointRadius: 0,
-        borderWidth: 1,
-        
-      });
-      datasets.push({
-        label: 'Прогнозная замена',
-        data: [
-          [earliestPlannedDate.toISOString(), 0],
-          [earliestPlannedDate.toISOString(), this.critical]
-        ],
+        label: 'Прогноз',
+        data: [[earliestPlannedDate.toISOString(), 0]],
         borderColor: '#ff9800',
-        borderDash: [4, 4],
+        borderDash: [5, 5],
         pointRadius: 0,
-        borderWidth: 1,
-        
+        borderWidth: 2
       });
 
       const ctx = this.canvasRef.nativeElement.getContext('2d');
@@ -292,13 +315,17 @@ export class RulChartSimpleComponent implements AfterViewInit {
                 color: '#fff',
                 filter: (item) => !!item.text
               }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
             }
           },
           scales: {
             x: {
               type: 'time',
-              min: minDate.getTime(),  
-              max: maxDate.getTime(),  
+              min: minDate.getTime(),
+              max: maxDate.getTime(),
               time: {
                 unit: 'year',
                 displayFormats: { year: 'yyyy' }
@@ -318,12 +345,11 @@ export class RulChartSimpleComponent implements AfterViewInit {
       });
 
     } catch (e) {
-      console.error(e);
+      console.error('Error rendering RUL chart:', e);
     }
   }
-
   private getColor(id: number): string {
-    const colors = ['#32b8c6','#ff9800','#ff4444','#00d4aa','#a855f7'];
+    const colors = ['#32b8c6', '#ff9800', '#ff4444', '#00d4aa', '#a855f7', '#e91e63'];
     return colors[id % colors.length];
   }
 }

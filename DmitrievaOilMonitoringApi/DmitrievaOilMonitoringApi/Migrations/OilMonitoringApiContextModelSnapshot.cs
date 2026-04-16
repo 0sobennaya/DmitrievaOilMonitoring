@@ -56,7 +56,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Oils");
+                    b.ToTable("Oils", (string)null);
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilConditionRecord", b =>
@@ -107,7 +107,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     b.HasIndex("PumpId");
 
-                    b.ToTable("OilConditionRecords");
+                    b.ToTable("OilConditionRecords", (string)null);
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilForecastPoint", b =>
@@ -152,7 +152,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     b.HasIndex("PumpId");
 
-                    b.ToTable("OilForecastPoints");
+                    b.ToTable("OilForecastPoints", (string)null);
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.Person", b =>
@@ -187,7 +187,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
                     b.HasIndex("Login")
                         .IsUnique();
 
-                    b.ToTable("People");
+                    b.ToTable("People", (string)null);
 
                     b.HasData(
                         new
@@ -268,7 +268,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
                     b.HasIndex("OilId")
                         .IsUnique();
 
-                    b.ToTable("Pumps");
+                    b.ToTable("Pumps", (string)null);
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.RulResult", b =>
@@ -320,7 +320,7 @@ namespace DmitrievaOilMonitoringApi.Migrations
 
                     b.HasIndex("PumpId");
 
-                    b.ToTable("RulResults");
+                    b.ToTable("RulResults", (string)null);
                 });
 
             modelBuilder.Entity("DmitrievaOilMonitoringApi.Models.OilConditionRecord", b =>

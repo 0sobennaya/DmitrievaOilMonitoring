@@ -60,6 +60,10 @@ df_real = pd.read_sql_query(query_all, conn)
 df_real['MeasurementDate'] = pd.to_datetime(df_real['MeasurementDate'])
 
 last_measurements = df_real.groupby('PumpId').last().reset_index()
+# Первая дата замера для каждого насоса (для расчёта плановой замены +5 лет)
+first_measurements = df_real.groupby('PumpId').first().reset_index()[['PumpId', 'MeasurementDate']]
+first_measurement_dict = dict(zip(first_measurements['PumpId'], first_measurements['MeasurementDate']))
+print(f"   First measurements: { {k: v.strftime('%Y-%m') for k,v in first_measurement_dict.items()} }")
 print(f"Loaded {len(df_real)} records from {len(last_measurements)} pumps")
 print(f"   Latest measurement: {last_measurements['MeasurementDate'].max()}")
 
@@ -116,6 +120,10 @@ for PumpId in last_measurements['PumpId'].unique():
     print(f"{'='*70}")
 
     last_row = last_measurements[last_measurements['PumpId'] == PumpId].iloc[0]
+    # Плановая замена: первая запись + 5 лет
+    first_date = first_measurement_dict[PumpId]
+    plan_replace_date = first_date + pd.DateOffset(years=5)
+    print(f"   First oil install: {first_date.strftime('%Y-%m')} → Plan replace: {plan_replace_date.strftime('%Y-%m')}")
     print(f"Latest measurement: {last_row['MeasurementDate'].strftime('%Y-%m-%d')}")
     print(f"Operating hours: {last_row['OperatingHours']:.0f}")
     
@@ -229,7 +237,8 @@ for PumpId in last_measurements['PumpId'].unique():
         'ReplacementDateCritical': replacement_date_critical,
         'LimitingParamWarning': limiting_param_warning,
         'LimitingParamCritical': limiting_param_critical,
-        'OperatingHoursAtCalculation': last_row['OperatingHours']
+        'OperatingHoursAtCalculation': last_row['OperatingHours'],
+        'PlanReplaceDate': plan_replace_date
     })
     
     forecast_data.extend(predicted_oil)
@@ -251,6 +260,7 @@ df_rul['RulCriticalMonths'] = df_rul['RulCriticalMonths'].astype(int)
 df_rul['RulWarningYears'] = df_rul['RulWarningYears'].astype(float)
 df_rul['RulCriticalYears'] = df_rul['RulCriticalYears'].astype(float)
 df_rul['OperatingHoursAtCalculation'] = df_rul['OperatingHoursAtCalculation'].astype(int)
+df_rul['PlanReplaceDate'] = df_rul['PlanReplaceDate'].astype(str)
 
 rul_results = df_rul.to_dict('records')  # Теперь все значения — int/float/string
 df_rul.to_csv("rul_results_2030.csv", index=False, encoding='utf-8')
@@ -282,8 +292,8 @@ try:
     INSERT INTO "RulResults" 
     ("PumpId", "CurrentDate", "RulWarningMonths", "RulCriticalMonths", 
     "RulWarningYears", "RulCriticalYears", "ReplacementDateWarning", 
-    "ReplacementDateCritical", "LimitingParamWarning", "LimitingParamCritical", "OperatingHoursAtCalculation")
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    "ReplacementDateCritical", "LimitingParamWarning", "LimitingParamCritical", "OperatingHoursAtCalculation", "PlanReplaceDate")
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
 
     for result in rul_results:
@@ -305,7 +315,8 @@ try:
             result['ReplacementDateCritical'],
             str(result['LimitingParamWarning']),
             str(result['LimitingParamCritical']),
-            operating_hours
+            operating_hours,
+            result['PlanReplaceDate']
         ))
     conn.commit() # Подтверждаем все вставки одной транзакцией
     print(f"OK: Added {len(rul_results)} records to 'RulResults'.")

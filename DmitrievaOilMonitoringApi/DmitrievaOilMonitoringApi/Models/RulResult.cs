@@ -37,5 +37,7 @@ namespace DmitrievaOilMonitoringApi.Models
 
         [Required]
         public long OperatingHoursAtCalculation { get; set; }
+        [Required]
+        public DateTime PlanReplaceDate { get; set; }
     }
 }
