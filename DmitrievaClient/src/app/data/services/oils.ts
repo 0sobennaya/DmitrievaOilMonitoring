@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { OilInterface, OilResponse, OilUpdateRequest } from '../interfaces/oils.interface';
+import {  OilResponse, OilUpdateRequest } from '../interfaces/oils.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -28,22 +28,4 @@ export class OilsService {
   deleteOil(id: number) {
     return this.http.delete<void>(`${this.baseApiUrl}Oils/${id}`);
   }
-
-  private convertToInterface(response: OilResponse): OilInterface {
-  return {
-    id: response.id,
-    tan: response.tan,
-    viscosity: response.viscosity,
-    waterContent: response.waterContent,
-    impuritiesPct : response.impuritiesPct,
-    flashPointC : response.flashPointC,
-    installationDate: response.installationDate,
-    operatingHours: response.operatingHours,
-    startStopCycles: response.startStopCycles,
-    wear: response.wear,
-    contamination: response.contamination,
-    status: response.status,
-    pumpUsage: response.pumpUsage,
-  };
-  } 
 }

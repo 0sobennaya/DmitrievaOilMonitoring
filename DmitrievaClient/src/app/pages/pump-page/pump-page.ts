@@ -95,8 +95,7 @@ export class PumpPage {
     // Проверяем ID, если задан
     if (id && !p.id?.toString().includes(id)) {
       return false;
-    }
-    
+    }    
     // Проверяем режим, если задан
     if (mode !== null && p.mode !== mode) {
       return false;
@@ -107,9 +106,6 @@ export class PumpPage {
 
   this.filteredPumps.set(filtered);
 }
-
-
-
   // Метод для переключения вида
   toggleViewMode(mode: 'cards' | 'table') {
     this.viewMode.set(mode);

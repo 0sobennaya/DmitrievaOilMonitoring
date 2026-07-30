@@ -44,7 +44,8 @@ export const routes: Routes = [
         canActivate: [notEngineerGuard]
       },
     ]
-  },
+ 
+ },
   { path: 'login', component: LoginPage },
   { path: 'register', component: RegisterPage }
 ];

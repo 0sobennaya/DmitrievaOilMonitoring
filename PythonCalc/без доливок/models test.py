@@ -1,6 +1,6 @@
 """
 ПОСТРОЕНИЕ ПРОГНОЗНЫХ МОДЕЛЕЙ
-Версия: 2.0 (Экспоненциальная модель для TAN)
+Версия: 2.1 (Экспоненциальная модель для TAN + t-тест Стьюдента)
 """
 import pandas as pd
 import numpy as np
@@ -13,6 +13,7 @@ import pickle
 import warnings
 warnings.filterwarnings('ignore')
 plt.style.use('seaborn-v0_8-whitegrid')
+from scipy import stats as scipy_stats
 
 print("="*80)
 print("ПОСТРОЕНИЕ ПРОГНОЗНЫХ МОДЕЛЕЙ (KFOLD CV + EXP для TAN)")
@@ -22,8 +23,12 @@ print("="*80)
 # 1. ЗАГРУЗКА ДАННЫХ
 # ===============================================================
 print("\n[1/4] Загрузка данных...")
-df = pd.read_csv("training_data_combined.csv")
-print(f"✅ Загружено {len(df)} записей")
+# Используем имя data, чтобы не конфликтовать с df (degrees of freedom) внутри цикла
+data = pd.read_csv("training_data_combined.csv")
+
+print(f"✅ Загружено {len(data)} записей")
+print(f"📊 Тип: {type(data)}, Форма: {data.shape}")
+print(f"📋 Столбцы: {list(data.columns)}")
 
 # ===============================================================
 # 2. КОНФИГУРАЦИЯ МОДЕЛЕЙ
@@ -43,7 +48,7 @@ targets_config = {
     },
     'Impurities': {
         'target_col': 'impurities_pct',
-        'features': [ 'mean_vibration','operating_hours'],
+        'features': ['mean_vibration', 'operating_hours'],
         'model_type': 'linear'
     },
     'Flash Point': {
@@ -58,9 +63,9 @@ for name, config in targets_config.items():
     print(f"   {name}: {config['features']} [{model_type}]")
 
 # ===============================================================
-# 3. ОБУЧЕНИЕ И ОЦЕНКА
+# 3. ОБУЧЕНИЕ И СТАТИСТИЧЕСКАЯ ПРОВЕРКА
 # ===============================================================
-print("\n[3/4] Обучение моделей...")
+print("\n[3/4] Обучение моделей и проверка значимости (t-тест Стьюдента)...")
 
 scaler_dict = {}
 models = {}
@@ -75,12 +80,17 @@ for name, config in targets_config.items():
     feature_list = config['features']
     model_type = config['model_type']
     
-    X = df[feature_list].values
-    y = df[target_col].values
+    # Безопасное извлечение признаков
+    if len(feature_list) == 1:
+        X = data[[feature_list[0]]].values
+    else:
+        X = data[feature_list].values
+    
+    y = data[target_col].values
     
     # 🔥 Для экспоненциальной модели: log(y) = a*X + b
     if model_type == 'exponential':
-        y_transformed = np.log(y + 0.001)  # +0.001 для защиты от log(0)
+        y_transformed = np.log(y + 0.001)
     else:
         y_transformed = y
     
@@ -90,6 +100,45 @@ for name, config in targets_config.items():
     model = LinearRegression()
     model.fit(X_scaled, y_transformed)
     
+    # ===============================================================
+    # СТАТИСТИЧЕСКАЯ ПРОВЕРКА: t-тест Стьюдента
+    # ===============================================================
+    X_with_const = np.column_stack([np.ones(len(X_scaled)), X_scaled])
+    beta = np.linalg.lstsq(X_with_const, y_transformed, rcond=None)[0]
+
+    y_pred_calc = X_with_const @ beta
+    residuals = y_transformed - y_pred_calc
+    
+    n, p = len(y_transformed), X_scaled.shape[1]
+    
+    # ВАЖНО: degrees_of_freedom (df), чтобы не затирать DataFrame
+    degrees_of_freedom = n - p - 1
+    
+    sigma_sq = np.sum(residuals**2) / degrees_of_freedom
+
+    XtX_inv = np.linalg.inv(X_with_const.T @ X_with_const)
+    se = np.sqrt(np.diag(XtX_inv) * sigma_sq)
+
+    t_stats = beta / se
+    
+    # p-value через t-распределение Стьюдента
+    p_values_calc = [2 * (1 - scipy_stats.t.cdf(abs(t), degrees_of_freedom)) for t in t_stats]
+    p_values = p_values_calc[1:]
+    t_stats_features = t_stats[1:]
+
+    t_critical = scipy_stats.t.ppf(1 - 0.025, degrees_of_freedom)
+
+    # F-статистика
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((y_transformed - np.mean(y_transformed))**2)
+    f_stat = ((ss_tot - ss_res) / p) / (ss_res / degrees_of_freedom)
+    f_pvalue = 1 - scipy_stats.f.cdf(f_stat, p, degrees_of_freedom)
+
+    adj_r2 = 1 - (1 - r2_score(y_transformed, y_pred_calc)) * (n - 1) / degrees_of_freedom
+
+    shapiro_stat, shapiro_p = scipy_stats.shapiro(residuals)
+    residuals_normal = shapiro_p > 0.05
+
     # Кросс-валидация
     cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=kf, scoring='r2')
     cv_scores_clean = cv_scores[~np.isnan(cv_scores)]
@@ -101,10 +150,7 @@ for name, config in targets_config.items():
         cv_mean = np.nan
         cv_std = np.nan
     
-    # Предсказание
     y_pred_transformed = model.predict(X_scaled)
-    
-    # 🔥 Обратное преобразование для экспоненциальной модели
     if model_type == 'exponential':
         y_pred = np.exp(y_pred_transformed)
     else:
@@ -125,15 +171,30 @@ for name, config in targets_config.items():
         'CV_R2_Std': cv_std,
         'Full_R2': full_r2,
         'MAE': mae,
+        'Adj_R2': adj_r2,
+        'F_Stat': f_stat,
+        'F_P_Value': f_pvalue,
+        'P_Values': p_values,
+        'T_Stats': t_stats_features,
+        'Residuals_Normal': residuals_normal,
         'Coefficient': model.coef_[0] if len(feature_list) == 1 else model.coef_,
         'Intercept': model.intercept_
     })
     
+    # Вывод в консоль
     if np.isnan(cv_mean):
         print(f"   ⚠️  CV R²: nan")
     else:
         print(f"   CV R²: {cv_mean:.3f} (±{cv_std:.3f})")
-    print(f"   Full R²: {full_r2:.3f}, MAE: {mae:.5f}")
+    print(f"   Full R²: {full_r2:.3f}, Adj R²: {adj_r2:.3f}, MAE: {mae:.5f}")
+    print(f"   F-тест (адекватность): F={f_stat:.2f}, p={f_pvalue:.5f} {'✅' if f_pvalue < 0.05 else '❌'}")
+    print(f"   t-тест Стьюдента (α=0.05, df={degrees_of_freedom}): критическое t = ±{t_critical:.3f}")
+    print(f"   Нормальность остатков: {'✅ Да' if residuals_normal else '❌ Нет'} (Shapiro p={shapiro_p:.4f})")
+    
+    for feat, t, p in zip(feature_list, t_stats_features, p_values):
+        sig = "***" if p < 0.001 else "**" if p < 0.01 else "*" if p < 0.05 else ""
+        status = "✅ значим" if abs(t) > t_critical else "❌ не значим"
+        print(f"   ├ {feat}: t={t:.3f}, p={p:.5f} {sig} [{status}]")
     print(f"   Тип модели: {model_type}")
 
 # ===============================================================
@@ -149,7 +210,7 @@ with open('models.pkl', 'wb') as f:
     }, f)
 print("   ✅ models.pkl")
 
-# Графики
+# Графики предсказаний
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 axes = axes.flatten()
 
@@ -159,8 +220,8 @@ for idx, res in enumerate(results):
     target_col = res['Target_Col']
     model_type = res['Model_Type']
     
-    X = df[res['Features']]
-    y_true = df[target_col].values
+    X = data[res['Features']]
+    y_true = data[target_col].values
     X_scaled = scaler_dict[name].transform(X)
     
     y_pred_transformed = models[name].predict(X_scaled)
@@ -210,12 +271,8 @@ print("-" * 85)
 for res in results:
     features_str = ', '.join(res['Features'])
     model_label = "🔥 EXP" if res['Model_Type'] == 'exponential' else "📏 LIN"
-    if np.isnan(res['CV_R2_Mean']):
-        cv_str = "nan (N/A)"
-    else:
-        cv_str = f"{res['CV_R2_Mean']:.3f} (±{res['CV_R2_Std']:.3f})"
+    cv_str = f"{res['CV_R2_Mean']:.3f} (±{res['CV_R2_Std']:.3f})" if not np.isnan(res['CV_R2_Mean']) else "nan (N/A)"
     print(f"{res['Target']:<15} | {model_label:<8} | {features_str:<25} | {cv_str:<15} | {res['Full_R2']:<12.3f}")
-
 print("="*80)
 
 print("\n💡 ИНТЕРПРЕТАЦИЯ ДЛЯ ВКР:")
@@ -227,46 +284,3 @@ print("   4. Физическое обоснование: скорость ок�
 print("\n" + "="*80)
 print("✅ МОДЕЛИ ГОТОВЫ. Запускайте rul.py")
 print("="*80)
-
-# ===============================================================
-# ВЫВОД ФОРМУЛ МОДЕЛЕЙ
-# ===============================================================
-print("\n" + "="*80)
-print("ФОРМУЛЫ МОДЕЛЕЙ")
-print("="*80)
-
-for res in results:
-    name = res['Target']
-    model_type = res['Model_Type']
-    features = res['Features']
-    coef = res['Coefficient']
-    intercept = res['Intercept']
-    
-    print(f"\n📊 {name}:")
-    print(f"   Тип: {model_type}")
-    print(f"   Признаки: {features}")
-    print(f"   Intercept (b): {intercept:.6f}")
-    
-    if len(features) == 1:
-        print(f"   Coef (a): {coef[0]:.6f}")
-    else:
-        for i, (feat, c) in enumerate(zip(features, coef)):
-            print(f"   Coef {feat}: {c:.6f}")
-    
-    # Формула
-    if model_type == 'exponential':
-        if len(features) == 1:
-            print(f"\n   ФОРМУЛА: {name} = exp({coef[0]:.4f}·{features[0]} + {intercept:.4f})")
-        else:
-            terms = [f"{c:.4f}·{f}" for f, c in zip(features, coef)]
-            formula = " + ".join(terms) + f" + {intercept:.4f}"
-            print(f"\n   ФОРМУЛА: {name} = exp({formula})")
-    else:
-        if len(features) == 1:
-            print(f"\n   ФОРМУЛА: {name} = {coef[0]:.4f}·{features[0]} + {intercept:.4f}")
-        else:
-            terms = [f"{c:.4f}·{f}" for f, c in zip(features, coef)]
-            formula = " + ".join(terms) + f" + {intercept:.4f}"
-            print(f"\n   ФОРМУЛА: {name} = {formula}")
-
-print("\n" + "="*80)

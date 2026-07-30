@@ -1,7 +1,7 @@
 ﻿using DmitrievaOilMonitoringApi.Data;
 using DmitrievaOilMonitoringApi.DTO;
 using DmitrievaOilMonitoringApi.Models;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
@@ -31,7 +31,7 @@ namespace DmitrievaOilMonitoringApi.Data.Services
         {
             _logger.LogInformation("Запуск расчета RUL через Python-скрипт '{ScriptPath}'.", _pythonScriptPath);
 
-            if (!System.IO.File.Exists(_pythonScriptPath))
+            if (!File.Exists(_pythonScriptPath))
             {
                 _logger.LogError("Файл скрипта Python не найден: '{ScriptPath}'", _pythonScriptPath);
                 return false;

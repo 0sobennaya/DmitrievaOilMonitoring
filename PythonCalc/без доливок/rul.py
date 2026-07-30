@@ -123,7 +123,7 @@ for PumpId in last_measurements['PumpId'].unique():
     # Плановая замена: первая запись + 5 лет
     first_date = first_measurement_dict[PumpId]
     plan_replace_date = first_date + pd.DateOffset(years=5)
-    print(f"   First oil install: {first_date.strftime('%Y-%m')} → Plan replace: {plan_replace_date.strftime('%Y-%m')}")
+    print(f"   First oil install: {first_date.strftime('%Y-%m')} -> Plan replace: {plan_replace_date.strftime('%Y-%m')}")
     print(f"Latest measurement: {last_row['MeasurementDate'].strftime('%Y-%m-%d')}")
     print(f"Operating hours: {last_row['OperatingHours']:.0f}")
     

@@ -1,4 +1,5 @@
-﻿using DmitrievaOilMonitoringApi.DTO;
+﻿using DmitrievaOilMonitoringApi.Data;
+using DmitrievaOilMonitoringApi.DTO;
 using DmitrievaOilMonitoringApi.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
